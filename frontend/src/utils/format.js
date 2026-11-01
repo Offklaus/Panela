@@ -1,0 +1,24 @@
+// Formatação para a tela em pt-BR. Nenhuma regra de negócio aqui (constituição, Princípio II).
+
+export function formatDecimal(value) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return '–';
+  return value.toFixed(1).replace('.', ',');
+}
+
+export function initials(name) {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  const first = [...parts[0]];
+  const second = parts.length > 1 ? [...parts.at(-1)][0] : (first[1] ?? '');
+  return (first[0] + second).toLocaleUpperCase('pt-BR');
+}
+
+export function starsText(count) {
+  return count === 1 ? '1 estrela' : `${count} estrelas`;
+}
+
+export function missingPlayersText(count) {
+  return count === 1
+    ? 'Falta 1 jogador para fechar 2 times.'
+    : `Faltam ${count} jogadores para fechar 2 times.`;
+}

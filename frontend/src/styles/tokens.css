@@ -1,0 +1,42 @@
+/* Cores e tipografia do canvas "Times de Society" */
+:root {
+  --color-ground: #f5f5f1;
+  --color-ink: #0d1b12;
+  --color-ink-hover: #2b4a35;
+  --color-accent: #33ff00;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f4f3;
+  --color-line: #e4e9e4;
+  --color-line-strong: #c9d3ca;
+  --color-text-muted: #4a5a4f;
+  --color-placeholder: #6b786e;
+  --color-star-empty: #7a877c;
+  --color-row-present: #ecf7f0;
+
+  --color-dark-surface: #16281c;
+  --color-dark-line: #24402d;
+  --color-dark-line-strong: #3c5a45;
+  --color-dark-text-muted: #b9c6bc;
+  --color-dark-star-empty: #6e8a75;
+
+  --color-error: #b42318;
+  --color-error-surface: #fef3f2;
+  --color-error-line: #f3c7c2;
+
+  --vest-green: #33ff00;
+  --vest-white: #f5f5f1;
+  --vest-orange: #ffb020;
+  --vest-blue: #4da3ff;
+  --vest-pink: #ff5c8a;
+  --vest-purple: #b18cff;
+  --vest-yellow: #ffe14d;
+  --vest-cyan: #5ce1e6;
+
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', system-ui, sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --touch: 44px;
+}

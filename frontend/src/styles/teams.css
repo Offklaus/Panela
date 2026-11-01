@@ -1,0 +1,262 @@
+/* Seção "Times da rodada" do canvas */
+.teams-card {
+  flex: 1.25 1 520px;
+  background: var(--color-ink);
+  color: var(--color-ground);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .teams-card {
+    padding: 20px 16px;
+  }
+}
+
+.teams-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.teams-title {
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: 0.4px;
+}
+
+.teams-subtitle {
+  margin: 4px 0 0;
+  color: var(--color-dark-text-muted);
+  font-size: 15px;
+}
+
+.draw-button {
+  height: 52px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.draw-button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.stale-warning {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--color-dark-line-strong);
+  background: var(--color-dark-surface);
+  font-size: 15px;
+}
+
+.balance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-dark-text-muted);
+  font-size: 15px;
+}
+
+.balance-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-dark-line-strong);
+  background: var(--color-dark-surface);
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.teams-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 16px;
+}
+
+.team-card {
+  background: var(--color-dark-surface);
+  border: 1px solid var(--color-dark-line);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.team-color {
+  height: 6px;
+  background: var(--vest-color);
+}
+
+.team-head {
+  padding: 16px 16px 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.team-vest {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-dark-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.team-name {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.team-score {
+  text-align: right;
+}
+
+.team-total {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.team-average {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--color-dark-text-muted);
+}
+
+.team-players {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 10px;
+}
+
+.team-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px;
+  border-top: 1px solid var(--color-dark-line);
+}
+
+.team-player-name {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-stars {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.mini-stars .star-filled {
+  color: var(--color-accent);
+}
+
+.mini-stars .star-empty {
+  color: var(--color-dark-star-empty);
+}
+
+.teams-empty {
+  border: 1.5px dashed var(--color-dark-line-strong);
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.teams-empty-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.teams-empty p {
+  margin: 0;
+  max-width: 380px;
+  color: var(--color-dark-text-muted);
+}
+
+.bench {
+  border-top: 1px solid var(--color-dark-line);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bench-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-dark-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.bench-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bench-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-dark-line-strong);
+  background: var(--color-dark-surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bench-rating {
+  color: var(--color-accent);
+}

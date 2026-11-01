@@ -1,0 +1,16 @@
+{
+  "name": "panela-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tela do Times de Society",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}

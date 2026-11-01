@@ -1,0 +1,17 @@
+# Dependências e builds
+node_modules/
+dist/
+
+# Segredos e dados locais (o .env.example continua versionado)
+.env
+.env.*
+!.env.example
+backend/data/
+
+# Configurações locais do Claude Code (as skills e o launch.json vão para o repositório)
+.claude/settings.local.json
+
+# Sistema e editores
+*.log
+.DS_Store
+Thumbs.db

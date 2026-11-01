@@ -1,0 +1,30 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { formatDecimal, initials, missingPlayersText, starsText } from '../src/utils/format.js';
+
+test('formatDecimal usa uma casa e vírgula', () => {
+  assert.equal(formatDecimal(3.4), '3,4');
+  assert.equal(formatDecimal(4), '4,0');
+  assert.equal(formatDecimal(3.25), '3,3');
+});
+
+test('formatDecimal mostra "–" sem valor', () => {
+  assert.equal(formatDecimal(null), '–');
+  assert.equal(formatDecimal(undefined), '–');
+});
+
+test('initials usa primeira e última palavra, ou as duas primeiras letras', () => {
+  assert.equal(initials('Jogador 01'), 'J0');
+  assert.equal(initials('pedro  henrique souza'), 'PS');
+  assert.equal(initials('Pedrinho'), 'PE');
+});
+
+test('starsText no singular e no plural', () => {
+  assert.equal(starsText(1), '1 estrela');
+  assert.equal(starsText(3), '3 estrelas');
+});
+
+test('missingPlayersText no singular e no plural', () => {
+  assert.equal(missingPlayersText(1), 'Falta 1 jogador para fechar 2 times.');
+  assert.equal(missingPlayersText(3), 'Faltam 3 jogadores para fechar 2 times.');
+});
