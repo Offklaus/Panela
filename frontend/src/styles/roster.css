@@ -1,36 +1,27 @@
-/* Seção "Elenco" do canvas */
-.columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  align-items: flex-start;
-}
-
+/* Tela Elenco: canvas "Elenco · celular" */
 .card {
   min-width: 0;
   border-radius: var(--radius-lg);
 }
 
 .roster-card {
-  flex: 1 1 440px;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   overflow: hidden;
 }
 
 .card-header {
-  padding: 20px 20px 16px;
+  padding: 16px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 12px;
   border-bottom: 1px solid var(--color-line);
 }
 
 .section-title {
   font-weight: 700;
-  font-size: 26px;
+  font-size: 28px;
+  line-height: 1;
   letter-spacing: 0.4px;
 }
 
@@ -41,32 +32,45 @@
 
 .card-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
+.card-actions .btn {
+  flex: 1 1 0;
+}
+
 .player-form {
-  padding: 16px 20px;
+  padding: 16px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   background: var(--color-surface-muted);
   border-bottom: 1px solid var(--color-line);
 }
 
-.player-form-name {
-  flex: 1 1 200px;
-  min-width: 0;
+.player-form-row {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.player-form-row .field-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.player-form-row .btn {
+  flex-shrink: 0;
 }
 
 .player-form-rating {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.player-form-stars {
+  margin-right: -10px;
 }
 
 .roster-list {
@@ -75,12 +79,16 @@
   padding: 0;
 }
 
+/* Linha em duas: nome e remover em cima, estrelas e presença embaixo (research §10) */
 .roster-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'player remove'
+    'stars presence';
   align-items: center;
-  gap: 8px 12px;
-  padding: 8px 12px 8px 20px;
+  column-gap: 8px;
+  padding: 6px 12px 8px 16px;
   border-bottom: 1px solid var(--color-line);
   background: var(--color-surface);
 }
@@ -90,11 +98,26 @@
 }
 
 .roster-player {
-  flex: 1 1 140px;
+  grid-area: player;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.roster-row .roster-remove {
+  grid-area: remove;
+  justify-self: end;
+  margin-right: -8px;
+}
+
+.roster-row .star-rating {
+  grid-area: stars;
+  margin-left: -10px;
+}
+
+.roster-row .presence {
+  grid-area: presence;
 }
 
 .avatar {
@@ -152,7 +175,7 @@
 
 .presence {
   height: var(--touch);
-  min-width: 112px;
+  min-width: 104px;
   padding: 0 12px;
   border-radius: 999px;
   font-size: 14px;
@@ -201,4 +224,18 @@
 
 .roster-empty[hidden] {
   display: none;
+}
+
+/* Em menos de 400 px, a lista ocupa a largura toda para as 5 estrelas e a presença caberem (research §10) */
+@media (max-width: 399px) {
+  .roster-screen {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .roster-card {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
 }

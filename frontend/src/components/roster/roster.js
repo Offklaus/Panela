@@ -12,7 +12,7 @@ export function createRoster({ form, levels, onRating, onTogglePresence, onRemov
     h(
       'div',
       { class: 'card-header' },
-      h('h2', { id: 'roster-title', class: 'display section-title' }, 'Elenco ', count),
+      h('h1', { id: 'roster-title', class: 'display section-title', tabindex: '-1', 'data-screen-title': true }, 'Elenco ', count),
       h(
         'div',
         { class: 'card-actions' },

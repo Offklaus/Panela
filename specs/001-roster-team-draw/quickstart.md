@@ -73,10 +73,11 @@ Cada passo remete às histórias e critérios da [spec](spec.md).
    - Cadastrar " pedrinho " → recusado por nome repetido.
    - Mudar o nível para 2 e remover → elenco reflete as duas mudanças.
    - Recarregar a página → tudo continua igual (SC-008).
-3. **Presença (US3)**
-   - Com 12 jogadores, "Limpar" → resumo 0 / 0 / "–".
-   - Marcar 7 → resumo mostra 7 presentes, 1 time e a média com vírgula.
-   - "Todos presentes" → resumo atualizado.
+3. **Presença (US3)**: a feature 002 tirou o resumo do topo; o número de presentes aparece no botão
+   de sortear.
+   - Com 12 jogadores, "Limpar" → o botão mostra "Sortear times · 0 presentes".
+   - Marcar 7 → "Sortear times · 7 presentes".
+   - "Todos presentes" → "Sortear times · 12 presentes".
 4. **Sorteio (US4)**
    - 9 presentes → "Falta 1 jogador para fechar 2 times."
    - 11 presentes → Time A e Time B com 5 cada, 1 em "Próximos · aguardando vaga".

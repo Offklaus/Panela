@@ -23,6 +23,10 @@ export function missingPlayersText(count, minTeams) {
     : `Faltam ${count} jogadores para fechar ${minTeams} times.`;
 }
 
+export function presentCountText(count) {
+  return count === 1 ? '1 presente' : `${count} presentes`;
+}
+
 export function passwordHintText(minLength) {
   return `Mínimo de ${minLength} caracteres.`;
 }

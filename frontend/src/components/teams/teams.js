@@ -1,25 +1,15 @@
-import { swapIcon } from '../../assets/icons/icons.js';
 import { h } from '../../utils/dom.js';
-import { missingPlayersText, starsText } from '../../utils/format.js';
+import { starsText } from '../../utils/format.js';
+import { hasTeams } from '../../utils/screens.js';
 import { teamCard } from './teamCard.js';
 
-// FR-029: linha de status do sorteio.
-function statusLine(draw, minTeams) {
-  if (!draw) return 'Marque quem veio e toque em Montar times.';
-  if (draw.teams.length === 0) return missingPlayersText(draw.missingPlayers, minTeams);
+// FR-029 da 001: linha de status do sorteio.
+function statusLine(draw) {
   const base = `${draw.teams.length} times de ${draw.teamSize}`;
   return draw.bench.length > 0 ? `${base} · ${draw.bench.length} aguardando` : `${base} · ninguém de fora`;
 }
 
-function emptyState(title, text) {
-  return h('div', { class: 'teams-empty' }, h('div', { class: 'teams-empty-title' }, title), h('p', {}, text));
-}
-
 function content(draw, levels) {
-  if (!draw) return [emptyState('Nenhum sorteio ainda', 'Os times aparecem aqui depois do sorteio.')];
-  if (draw.teams.length === 0) {
-    return [emptyState('Jogadores insuficientes', 'Marque mais jogadores como presentes e sorteie de novo.')];
-  }
   return [
     h(
       'div',
@@ -31,10 +21,9 @@ function content(draw, levels) {
   ];
 }
 
-export function createTeams({ levels, minTeams, onDraw, footer }) {
+// Conteúdo da tela de times. O botão de sortear fica no rodapé fixo (drawBar).
+export function createTeams({ levels, footer }) {
   const subtitle = h('p', { class: 'teams-subtitle' });
-  const buttonLabel = h('span', {});
-  const button = h('button', { type: 'button', class: 'draw-button', onClick: handleDraw }, swapIcon(), buttonLabel);
   const stale = h(
     'p',
     { class: 'stale-warning', role: 'status', hidden: true },
@@ -44,23 +33,14 @@ export function createTeams({ levels, minTeams, onDraw, footer }) {
   );
   const body = h('div', { class: 'teams-body' });
 
-  async function handleDraw() {
-    button.disabled = true;
-    try {
-      await onDraw();
-    } finally {
-      button.disabled = false;
-    }
-  }
-
   const el = h(
     'section',
-    { class: 'card teams-card on-dark', 'aria-labelledby': 'teams-title' },
+    { class: 'teams-content', 'aria-labelledby': 'teams-title' },
     h(
       'div',
-      { class: 'teams-header' },
-      h('div', {}, h('h2', { id: 'teams-title', class: 'display teams-title' }, 'Times da rodada'), subtitle),
-      button,
+      {},
+      h('h1', { id: 'teams-title', class: 'display teams-title', tabindex: '-1', 'data-screen-title': true }, 'Times da rodada'),
+      subtitle,
     ),
     stale,
     body,
@@ -71,9 +51,15 @@ export function createTeams({ levels, minTeams, onDraw, footer }) {
     el,
     update(state) {
       const { draw } = state;
-      buttonLabel.textContent = draw ? 'Sortear de novo' : 'Montar times';
-      subtitle.textContent = statusLine(draw, minTeams);
-      stale.hidden = !draw?.stale;
+      // Sem times, a tela volta ao Elenco (FR-015); até lá, fica vazia.
+      if (!hasTeams(draw)) {
+        subtitle.textContent = '';
+        stale.hidden = true;
+        body.replaceChildren();
+        return;
+      }
+      subtitle.textContent = statusLine(draw);
+      stale.hidden = !draw.stale;
       body.replaceChildren(...content(draw, levels));
     },
   };

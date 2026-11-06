@@ -17,7 +17,7 @@ export function createPlayerForm({ levels, defaultRating, onSubmit }) {
     'aria-describedby': 'new-player-error',
   });
   const error = h('span', { class: 'field-error', id: 'new-player-error', hidden: true });
-  const stars = h('div', {});
+  const stars = h('div', { class: 'player-form-stars' });
   const submit = h('button', { type: 'submit', class: 'btn btn-primary' }, plusIcon(), 'Adicionar');
 
   function setError(message) {
@@ -68,19 +68,15 @@ export function createPlayerForm({ levels, defaultRating, onSubmit }) {
 
   renderStars();
 
+  // Ordem do canvas "Elenco · celular": nome e Adicionar na mesma linha, nível embaixo (research §11).
   return {
     el: h(
       'form',
       { class: 'player-form', novalidate: true, onSubmit: handleSubmit },
-      h(
-        'div',
-        { class: 'player-form-name' },
-        h('label', { class: 'eyebrow', for: 'new-player-name' }, 'Novo jogador'),
-        input,
-        error,
-      ),
+      h('label', { class: 'eyebrow', for: 'new-player-name' }, 'Novo jogador'),
+      h('div', { class: 'player-form-row' }, input, submit),
+      error,
       h('div', { class: 'player-form-rating' }, h('span', { class: 'eyebrow', 'aria-hidden': 'true' }, 'Nível'), stars),
-      submit,
     ),
   };
 }

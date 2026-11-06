@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDecimal, initials, missingPlayersText, passwordHintText, starsText } from '../src/utils/format.js';
+import { formatDecimal, initials, missingPlayersText, passwordHintText, presentCountText, starsText } from '../src/utils/format.js';
 
 test('formatDecimal usa uma casa e vírgula', () => {
   assert.equal(formatDecimal(3.4), '3,4');
@@ -31,6 +31,12 @@ test('missingPlayersText no singular e no plural', () => {
 
 test('missingPlayersText usa o mínimo de times informado', () => {
   assert.equal(missingPlayersText(1, 3), 'Falta 1 jogador para fechar 3 times.');
+});
+
+test('presentCountText no singular e no plural', () => {
+  assert.equal(presentCountText(0), '0 presentes');
+  assert.equal(presentCountText(1), '1 presente');
+  assert.equal(presentCountText(11), '11 presentes');
 });
 
 test('passwordHintText usa o mínimo informado', () => {

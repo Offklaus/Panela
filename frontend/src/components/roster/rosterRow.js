@@ -16,6 +16,7 @@ function presenceButton(player, onToggle) {
     : h('button', { ...props, class: 'presence presence-off' }, 'Ausente', name);
 }
 
+// Ordem do HTML = ordem visual: nome e remover em cima, estrelas e presença embaixo (research §10).
 export function rosterRow({ player, levels, onRating, onTogglePresence, onRemove }) {
   return h(
     'li',
@@ -26,6 +27,16 @@ export function rosterRow({ player, levels, onRating, onTogglePresence, onRemove
       h('span', { class: 'avatar', 'aria-hidden': 'true' }, initials(player.name)),
       h('span', { class: 'roster-name' }, player.name),
     ),
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'icon-button roster-remove',
+        'aria-label': `Remover ${player.name}`,
+        onClick: () => onRemove(player),
+      },
+      closeIcon(),
+    ),
     starRating({
       levels,
       value: player.rating,
@@ -35,15 +46,5 @@ export function rosterRow({ player, levels, onRating, onTogglePresence, onRemove
       onChange: (rating) => onRating(player, rating),
     }),
     presenceButton(player, onTogglePresence),
-    h(
-      'button',
-      {
-        type: 'button',
-        class: 'icon-button',
-        'aria-label': `Remover ${player.name}`,
-        onClick: () => onRemove(player),
-      },
-      closeIcon(),
-    ),
   );
 }
