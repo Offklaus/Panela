@@ -3,13 +3,12 @@ import { createHeader } from './components/header/header.js';
 import { createPlayerForm } from './components/player-form/playerForm.js';
 import { createRoster } from './components/roster/roster.js';
 import { createScreenActions } from './screenActions.js';
-import * as drawApi from './services/drawApi.js';
 import * as rosterApi from './services/rosterApi.js';
 import { h } from './utils/dom.js';
 import { missingPlayersText, presentCountText } from './utils/format.js';
 import { clearNotice } from './utils/notice.js';
 import { ratingLevels } from './utils/rules.js';
-import { hasTeams, routeAfterDraw } from './utils/screens.js';
+import { routeAfterDraw } from './utils/screens.js';
 
 // Mantém o foco no mesmo controle depois que a lista é redesenhada.
 function preserveFocus(update) {
@@ -18,7 +17,8 @@ function preserveFocus(update) {
   if (key) document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.focus();
 }
 
-// Tela Elenco (#/): primeira tela depois de entrar, com o botão de sortear fixo embaixo.
+// Tela Elenco (#/): primeira tela depois de entrar, com o cabeçalho fixo no alto e o botão de
+// sortear fixo embaixo.
 export function rosterView({ mount, store, navigate }) {
   const { rules } = store.getState();
   const levels = ratingLevels(rules);
@@ -33,25 +33,15 @@ export function rosterView({ mount, store, navigate }) {
     }
   }
 
-  async function refreshDraw() {
-    try {
-      const { draw } = await drawApi.getDraw();
-      store.setState({ draw });
-    } catch (error) {
-      actions.handleError(error);
-    }
-  }
-
-  // Depois de mexer no elenco, o aviso de quantos faltam some (FR-009) e o sorteio vem de novo do
-  // backend, com o aviso de lista alterada (FR-031 e FR-032 da 001).
-  async function afterRosterChange(roster) {
+  // Depois de mexer no elenco, o aviso de quantos faltam some (FR-009). O sorteio é lido de novo
+  // quando a tela de times abre, já com o aviso de lista alterada (FR-031 da 001).
+  function afterRosterChange(roster) {
     store.setState({ roster, shortfall: null });
-    if (store.getState().draw) await refreshDraw();
   }
 
   async function saveRoster(request) {
     try {
-      await afterRosterChange(await request());
+      afterRosterChange(await request());
       clearNotice();
     } catch (error) {
       actions.handleError(error);
@@ -70,7 +60,7 @@ export function rosterView({ mount, store, navigate }) {
     defaultRating: rules.defaultRating,
     onSubmit: async (player) => {
       try {
-        await afterRosterChange(await rosterApi.addPlayer(player));
+        afterRosterChange(await rosterApi.addPlayer(player));
       } catch (error) {
         if (error.code === 'UNAUTHENTICATED') {
           error.handled = true;
@@ -89,7 +79,7 @@ export function rosterView({ mount, store, navigate }) {
     onAllPresent: () => saveRoster(() => rosterApi.setAllPresence(true)),
     onClearPresence: () => saveRoster(() => rosterApi.setAllPresence(false)),
   });
-  const drawBar = createDrawBar({ label: 'Sortear times', onDraw: drawTeams, lastTeamsHref: '#/times' });
+  const drawBar = createDrawBar({ label: 'Sortear times', onDraw: drawTeams });
 
   mount.append(
     h('div', { class: 'screen' }, header.el, h('main', { class: 'screen-main roster-screen' }, roster.el), drawBar.el),
@@ -101,13 +91,11 @@ export function rosterView({ mount, store, navigate }) {
       drawBar.update({
         countText: state.roster ? presentCountText(state.roster.summary.presentCount) : null,
         shortfallText: Number.isInteger(state.shortfall) ? missingPlayersText(state.shortfall, rules.minTeams) : null,
-        showLastTeams: hasTeams(state.draw),
       });
     });
   const unsubscribe = store.subscribe(render);
   render(store.getState());
   loadRoster();
-  refreshDraw();
 
   return () => {
     active = false;

@@ -29,8 +29,8 @@ Com backend e frontend rodando, abrir `http://localhost:5173` numa janela de 360
 
 1. **Elenco (US1)**
    - Ao entrar, aparece o Elenco, sem os quadros "Presentes", "Times" e "Média".
-   - Rolar até o fim da lista: o botão "Sortear times" fica visível o tempo todo e o último jogador
-     aparece inteiro.
+   - Rolar até o fim da lista: o cabeçalho com a marca e "Sair" fica no alto e o botão "Sortear
+     times" fica embaixo, os dois visíveis o tempo todo, e o último jogador aparece inteiro.
    - Com 11 presentes, o botão diz "Sortear times · 11 presentes"; marcar mais um muda para 12.
    - Nenhuma rolagem horizontal; estrelas e presença com toque de 44 px.
 2. **Times (US2)**
@@ -45,11 +45,11 @@ Com backend e frontend rodando, abrir `http://localhost:5173` numa janela de 360
    - Marcar mais um presente: o aviso some.
    - Na tela de times, deixar só 9 presentes pelo Elenco, voltar aos times e tocar em "Sortear de
      novo": o app volta ao Elenco com o aviso.
-4. **Últimos times (US4)**
-   - Depois de um sorteio com times, voltar ao Elenco e recarregar: aparece "Ver últimos times", que
-     abre os mesmos times.
-   - Mudar a presença de alguém e abrir "Ver últimos times": aparece o aviso de lista alterada.
+4. **Lista alterada e endereço direto**
+   - Depois de um sorteio, voltar ao Elenco, mudar a presença de alguém e usar o avançar do
+     navegador: a tela de times mostra o aviso de lista alterada.
    - Abrir `http://localhost:5173/#/times` numa conta sem sorteio: o app leva ao Elenco.
+   - Abaixo do botão de sortear não há link para os últimos times.
 5. **Computador**
    - Em janela larga, as duas telas aparecem numa coluna centralizada.
 6. **Teclado**

@@ -96,12 +96,12 @@ frontend/
 │   │   │   ├── header.js            # ~ só marca e "Sair"
 │   │   │   └── backHeader.js        # + "← Elenco"
 │   │   ├── draw-bar/
-│   │   │   └── drawBar.js           # + rodapé fixo: aviso, botão de sortear, "Ver últimos times"
+│   │   │   └── drawBar.js           # + rodapé fixo: aviso e botão de sortear
 │   │   ├── player-form/playerForm.js  # ~ nova ordem: nome + Adicionar, depois Nível
 │   │   ├── roster/rosterRow.js      # ~ ordem: nome, remover, estrelas, presença
 │   │   └── teams/teams.js           # ~ conteúdo da tela de times, sem o botão
 │   ├── styles/
-│   │   ├── base.css                 # ~ coluna das telas, rodapé fixo, aviso no topo; sem .header-stats
+│   │   ├── base.css                 # ~ coluna das telas, cabeçalho e rodapé fixos, aviso no topo; sem .header-stats
 │   │   ├── roster.css               # ~ linha em duas linhas; lista sem margem abaixo de 400 px
 │   │   └── teams.css                # ~ tela de times em fundo escuro
 │   └── utils/

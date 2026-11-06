@@ -20,6 +20,13 @@
 - Q: Referência visual? → A: Os quadros "Elenco · celular", "Elenco · faltam jogadores" e
   "Times · celular" do canvas, aprovados pelo usuário em 2026-11-05.
 
+### Session 2026-11-06
+
+- Q: Manter o link "Ver últimos times" abaixo do botão de sortear? → A: Não; o usuário pediu para
+  tirar. Para rever os últimos times, sorteia-se de novo ou usa-se o avançar do navegador.
+- Q: O cabeçalho fica fixo? → A: Sim: a marca e "Sair" ficam presos no alto, como o botão de
+  sortear fica embaixo. O topo da tela de times ("← Elenco") segue o mesmo padrão.
+
 ## User Scenarios & Testing *(mandatory)*
 
 O app tende a ser usado no celular, na hora do jogo, por quem organiza. Hoje elenco e times
@@ -36,8 +43,8 @@ número de presentes, por mais longa que seja a lista.
 sortear fora de alcance é o principal incômodo no celular hoje.
 
 **Independent Test**: num celular de 360 px, entrar numa conta com 30 jogadores, rolar a lista de
-ponta a ponta e conferir que o botão de sortear fica visível o tempo todo e que o resumo do topo
-não aparece.
+ponta a ponta e conferir que o cabeçalho e o botão de sortear ficam visíveis o tempo todo e que o
+resumo do topo não aparece.
 
 **Acceptance Scenarios**:
 
@@ -45,8 +52,8 @@ não aparece.
    tela é o Elenco, com cabeçalho só com a marca e "Sair", e sem os quadros de presentes, times e
    média.
 2. **Given** um elenco maior que a tela, **When** o organizador rola a lista até o fim, **Then** o
-   botão "Sortear times" continua visível na parte de baixo e o último jogador pode ser visto
-   inteiro, sem ficar atrás do botão.
+   cabeçalho com a marca e "Sair" continua visível no alto, o botão "Sortear times" continua
+   visível na parte de baixo e o último jogador pode ser visto inteiro, sem ficar atrás do botão.
 3. **Given** 11 presentes, **When** o Elenco é exibido, **Then** o botão mostra
    "Sortear times · 11 presentes"; com 1 presente, mostra "Sortear times · 1 presente".
 4. **Given** 11 presentes, **When** o organizador marca mais um como presente, **Then** o botão
@@ -79,6 +86,8 @@ novo nela, voltar ao Elenco pelo "← Elenco" e, depois, pelo voltar do navegado
    na tela de times, com o último sorteio.
 5. **Given** a tela de times com uma lista longa de times, **When** o organizador rola até o fim,
    **Then** o botão "Sortear de novo" continua visível e o banco pode ser visto inteiro.
+6. **Given** um sorteio feito, **When** o organizador volta ao Elenco, muda a presença de alguém e
+   usa o avançar do navegador, **Then** a tela de times mostra o aviso de que a lista mudou.
 
 ---
 
@@ -104,30 +113,6 @@ mais um presente e conferir que o aviso some.
    nível de um jogador, **Then** o aviso some.
 4. **Given** a tela de times aberta e só 9 presentes depois de uma mudança, **When** o organizador
    toca em "Sortear de novo", **Then** o app volta ao Elenco e mostra o aviso de quantos faltam.
-
----
-
-### User Story 4 - Voltar aos últimos times sem sortear de novo (Priority: P4)
-
-Depois de um sorteio, o organizador volta ao elenco, por exemplo para conferir um nível, ou reabre
-o app mais tarde. Um link abaixo do botão de sortear leva aos últimos times sem fazer um sorteio
-novo.
-
-**Why this priority**: como uma tela leva à outra, sem esse atalho o único caminho para os times
-seria sortear de novo e perder o resultado anterior.
-
-**Independent Test**: sortear, voltar ao Elenco, recarregar a página e abrir "Ver últimos times";
-conferir que os times são os mesmos do sorteio.
-
-**Acceptance Scenarios**:
-
-1. **Given** o último sorteio formou times, **When** o organizador está no Elenco, **Then** aparece
-   o link "Ver últimos times" abaixo do botão de sortear, e tocá-lo abre a tela de times com esse
-   sorteio, sem sortear de novo.
-2. **Given** nenhum sorteio, ou um último sorteio sem times, **When** o organizador está no Elenco,
-   **Then** o link "Ver últimos times" não aparece.
-3. **Given** um sorteio feito e uma mudança na lista depois dele, **When** o organizador abre os
-   últimos times, **Then** a tela mostra o aviso de que a lista mudou.
 
 ---
 
@@ -174,9 +159,9 @@ conferir que os times são os mesmos do sorteio.
   2 times."
 - **FR-009**: A mensagem do FR-008 MUST sumir na próxima alteração do elenco ou da presença, ou
   quando um sorteio formar times.
-- **FR-010**: Quando o último sorteio tiver times, o Elenco MUST mostrar, abaixo do botão de
-  sortear, o link "Ver últimos times", que abre a tela de times sem fazer um novo sorteio. Sem um
-  sorteio com times, o link MUST NOT aparecer.
+- **FR-010**: O cabeçalho das duas telas (marca e "Sair" no Elenco, "← Elenco" na tela de times)
+  MUST ficar fixo no alto e visível durante toda a rolagem. O Elenco MUST NOT mostrar atalho para
+  os últimos times abaixo do botão de sortear (removido em 2026-11-06).
 - **FR-011**: Enquanto um sorteio estiver em andamento, os botões de sortear MUST ficar
   indisponíveis, para que um toque duplo não faça dois sorteios.
 
@@ -196,8 +181,8 @@ conferir que os times são os mesmos do sorteio.
 
 - **FR-016**: Recarregar a página MUST manter o organizador na tela em que estava, Elenco ou
   times.
-- **FR-017**: Nenhum conteúdo MUST ficar escondido atrás do rodapé fixo: o último jogador do
-  elenco e o fim do banco MUST poder ser vistos inteiros rolando a tela.
+- **FR-017**: Nenhum conteúdo MUST ficar escondido atrás do cabeçalho ou do rodapé fixos: o
+  último jogador do elenco e o fim do banco MUST poder ser vistos inteiros rolando a tela.
 - **FR-018**: Em telas largas, como as de computador, as duas telas MUST aparecer numa coluna
   centralizada, com o mesmo conteúdo e a mesma ordem do celular.
 - **FR-019**: As estrelas de nível e os botões de presença MUST ter área de toque de pelo menos
@@ -226,8 +211,8 @@ Os demais requisitos da 001 continuam valendo sem mudança.
 
 ### Measurable Outcomes
 
-- **SC-001**: Num celular de 360 px, o botão de sortear fica visível em 100% das posições de
-  rolagem do Elenco, com até 100 jogadores.
+- **SC-001**: Num celular de 360 px, o cabeçalho e o botão de sortear ficam visíveis em 100% das
+  posições de rolagem do Elenco, com até 100 jogadores.
 - **SC-002**: Com a presença marcada, o organizador chega aos times com 1 toque.
 - **SC-003**: Da tela de times, o organizador volta ao Elenco com 1 toque ou com o voltar do
   aparelho.

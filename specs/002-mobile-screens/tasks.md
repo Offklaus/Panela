@@ -130,6 +130,17 @@ devem falhar primeiro. A parte visual é conferida no navegador pelo [quickstart
 
 ---
 
+## Phase 8: Ajustes pedidos em 2026-11-06
+
+**Purpose**: o usuário pediu para tirar "Ver últimos times" e deixar o cabeçalho fixo, como o botão de sortear.
+
+- [X] T029 Remove the "Ver últimos times" link from the "Elenco · celular" artboard of the canvas Times de Society
+- [X] T030 Remove the last-teams link from frontend/src/components/draw-bar/drawBar.js and frontend/src/rosterView.js (which no longer loads the draw), and the `.draw-bar-link` style from frontend/src/styles/base.css
+- [X] T031 Make the screen headers sticky at the top in frontend/src/styles/base.css (`.app-header`) and frontend/src/styles/teams.css (dark background on the times screen, safe-area top)
+- [X] T032 Update spec.md (Clarifications, US1, US2, FR-010, FR-017, SC-001; User Story 4 removed), research.md (§5, §12, new §13 and §14), data-model.md, contracts/screens.md, quickstart.md and plan.md
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

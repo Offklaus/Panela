@@ -53,7 +53,7 @@ Decisões técnicas da Fase 0. Só o frontend muda; o backend, a API e o banco f
 
 - **Decisão**: duas funções puras em `frontend/src/utils/screens.js`: `hasTeams(draw)` (o sorteio
   existe e tem times) e `routeAfterDraw(draw)` (`'/times'` com times, `'/'` sem). Elas decidem o
-  FR-007, o FR-008, o link "Ver últimos times" (FR-010) e o FR-015.
+  FR-007, o FR-008 e o FR-015.
 - **Por quê**: ficam testáveis com `node:test` sem navegador, como pede o Princípio IV para
   `utils/`. Elas só leem o resultado da API, sem recalcular regra do sorteio (Princípio II).
 
@@ -110,8 +110,24 @@ Decisões técnicas da Fase 0. Só o frontend muda; o backend, a API e o banco f
   `components/header/backHeader.js` ("← Elenco"). `header.js` perde os quadros do resumo, e
   `teams.js` perde o botão de sortear e passa a montar o conteúdo da tela de times.
 - **Carregamento**: as duas telas desenham na hora com o que já está no store e atualizam pela API
-  ao abrir. O Elenco busca o elenco e o sorteio (para o link do FR-010); a tela de times busca o
-  sorteio e, sem times, volta ao Elenco (FR-015).
+  ao abrir. O Elenco busca só o elenco; a tela de times busca o sorteio e, sem times, volta ao
+  Elenco (FR-015).
+
+## 13. Cabeçalho fixo (2026-11-06)
+
+- **Decisão**: o cabeçalho das duas telas usa `position: sticky; top: 0`, com o fundo da tela e
+  `env(safe-area-inset-top)` no espaçamento de cima. No Elenco ele tem a marca e "Sair"; na tela de
+  times, "← Elenco".
+- **Por quê**: o usuário pediu a marca e "Sair" presos no alto, como o botão de sortear embaixo.
+  Como o rodapé, o cabeçalho `sticky` ocupa o próprio espaço e não esconde conteúdo (FR-017).
+- **Alternativa descartada**: `position: fixed` com espaço reservado (o mesmo problema do §3).
+
+## 14. Sem atalho para os últimos times (2026-11-06)
+
+- **Decisão**: o link "Ver últimos times" saiu do rodapé do Elenco, a pedido do usuário, e o Elenco
+  deixou de buscar o sorteio ao abrir, porque só o link usava esse dado.
+- **Consequência**: para rever os últimos times, o organizador sorteia de novo ou usa o avançar do
+  navegador; aberta assim, a tela de times busca o sorteio e mostra o aviso de lista alterada.
 
 ## Dependências
 

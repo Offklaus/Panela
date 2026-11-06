@@ -13,7 +13,7 @@ tela no frontend.
 | `organizer` | `Organizer \| null` | API (`/auth/me`, `login`, `signup`) | entrar, sair, sessão vencida |
 | `rules` | `Rules` | API (`GET /api/rules`) | ao abrir o app |
 | `roster` | `RosterState \| null` | API (`/roster`, `/players`) | cada leitura ou alteração do elenco |
-| `draw` | `Draw \| null` | API (`/draw`) | ao abrir uma tela e a cada sorteio |
+| `draw` | `Draw \| null` | API (`/draw`) | ao abrir a tela de times e a cada sorteio |
 | `shortfall` | `number \| null` | **novo**: `draw.missingPlayers` de um sorteio sem times | ver abaixo |
 
 `shortfall`:
@@ -32,7 +32,6 @@ O botão de sortear mostra `roster.summary.presentCount`. Os campos `possibleTea
 | Entrar / Criar conta | entrou | Elenco (`#/`) | como hoje |
 | Elenco | sorteio com times | Times (`#/times`) | nova entrada |
 | Elenco | sorteio sem times | Elenco, com o aviso de `shortfall` | nenhuma |
-| Elenco | "Ver últimos times" | Times | nova entrada |
 | Times | "← Elenco" ou voltar do aparelho | Elenco, na mesma rolagem | volta uma entrada, ou troca a atual se não veio do Elenco |
 | Times | "Sortear de novo" com times | Times, com o novo sorteio | nenhuma |
 | Times | "Sortear de novo" sem times | Elenco, com o aviso de `shortfall` | como "← Elenco" |

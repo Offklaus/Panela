@@ -11,7 +11,7 @@ A referência visual são os quadros "Elenco · celular", "Elenco · faltam joga
 
 | Endereço | Tela | Precisa de sessão | Chamadas à API ao abrir |
 |----------|------|-------------------|--------------------------|
-| `#/` | Elenco | sim | `GET /api/roster`, `GET /api/draw` |
+| `#/` | Elenco | sim | `GET /api/roster` |
 | `#/times` | Times | sim | `GET /api/draw` |
 
 Rotas desconhecidas continuam levando a `#/`; sem sessão, as duas levam a `#/entrar`.
@@ -20,7 +20,7 @@ Rotas desconhecidas continuam levando a `#/`; sem sessão, as duas levam a `#/en
 
 De cima para baixo:
 
-1. **Cabeçalho**: marca "Times de Society" e o botão "Sair". Sem os quadros "Presentes", "Times" e
+1. **Cabeçalho fixo no alto**: marca "Times de Society" e o botão "Sair". Sem os quadros "Presentes", "Times" e
    "Média".
 2. **Cartão do elenco**: título `h1` "Elenco · N" (N = total de jogadores), botões "Todos presentes"
    e "Limpar", formulário de novo jogador e lista, como na feature 001.
@@ -32,12 +32,12 @@ De cima para baixo:
 3. **Rodapé fixo**, nesta ordem:
    - aviso `role="status"`, só quando `shortfall` tiver valor: "Falta 1 jogador para fechar
      {minTeams} times." ou "Faltam {N} jogadores para fechar {minTeams} times.";
-   - botão "Sortear times · {presentCountText}", por exemplo "Sortear times · 11 presentes";
-   - link "Ver últimos times", só quando `hasTeams(draw)`.
+   - botão "Sortear times · {presentCountText}", por exemplo "Sortear times · 11 presentes".
+   Não há link para os últimos times (removido em 2026-11-06).
 
 ## Times (`#/times`)
 
-1. **Cabeçalho**: botão "← Elenco", com nome acessível "Voltar ao elenco".
+1. **Cabeçalho fixo no alto**: botão "← Elenco", com nome acessível "Voltar ao elenco".
 2. **Conteúdo**, em fundo escuro: título `h1` "Times da rodada"; linha de status ("N times de 5 ·
    K aguardando" ou "N times de 5 · ninguém de fora"); aviso de lista alterada quando
    `draw.stale`; etiqueta de equilíbrio; cartões dos times; "Próximos · aguardando vaga" quando
