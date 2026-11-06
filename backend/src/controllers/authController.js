@@ -11,26 +11,26 @@ export function createAuthController({ auth, sessions, passwordReset, env }) {
     path: '/',
   };
 
-  function startSession(res, organizer) {
-    const { token } = sessions.createSession(organizer.id);
+  async function startSession(res, organizer) {
+    const { token } = await sessions.createSession(organizer.id);
     res.cookie('sid', token, { ...cookieOptions, maxAge: SESSION_DAYS * 86_400_000 });
   }
 
   return {
     async signup(req, res) {
       const organizer = await auth.signup(req.body);
-      startSession(res, organizer);
+      await startSession(res, organizer);
       res.status(201).json({ organizer });
     },
 
     async login(req, res) {
       const organizer = await auth.login(req.body);
-      startSession(res, organizer);
+      await startSession(res, organizer);
       res.json({ organizer });
     },
 
-    logout(req, res) {
-      sessions.endSession(req.sessionToken);
+    async logout(req, res) {
+      await sessions.endSession(req.sessionToken);
       res.clearCookie('sid', cookieOptions);
       res.status(204).end();
     },

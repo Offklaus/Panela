@@ -1,18 +1,23 @@
 export function create(db, { email, passwordHash, createdAt }) {
-  const info = db
-    .prepare('INSERT INTO organizers (email, password_hash, created_at) VALUES (?, ?, ?)')
-    .run(email, passwordHash, createdAt);
-  return { id: Number(info.lastInsertRowid), email };
+  return db.one(
+    'INSERT INTO organizers (email, password_hash, created_at) VALUES ($1, $2, $3) RETURNING id, email',
+    [email, passwordHash, createdAt],
+  );
 }
 
 export function findByEmail(db, email) {
-  return db.prepare('SELECT id, email, password_hash AS passwordHash FROM organizers WHERE email = ?').get(email) ?? null;
+  return db.one('SELECT id, email, password_hash AS "passwordHash" FROM organizers WHERE email = $1', [email]);
 }
 
 export function findById(db, id) {
-  return db.prepare('SELECT id, email FROM organizers WHERE id = ?').get(id) ?? null;
+  return db.one('SELECT id, email FROM organizers WHERE id = $1', [id]);
 }
 
 export function updatePasswordHash(db, id, passwordHash) {
-  db.prepare('UPDATE organizers SET password_hash = ? WHERE id = ?').run(passwordHash, id);
+  return db.run('UPDATE organizers SET password_hash = $1 WHERE id = $2', [passwordHash, id]);
+}
+
+// Dentro de uma transação, faz as alterações do mesmo organizador acontecerem uma de cada vez.
+export function lock(db, id) {
+  return db.one('SELECT id FROM organizers WHERE id = $1 FOR UPDATE', [id]);
 }

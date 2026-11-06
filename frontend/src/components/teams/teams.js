@@ -4,9 +4,9 @@ import { missingPlayersText, starsText } from '../../utils/format.js';
 import { teamCard } from './teamCard.js';
 
 // FR-029: linha de status do sorteio.
-function statusLine(draw) {
+function statusLine(draw, minTeams) {
   if (!draw) return 'Marque quem veio e toque em Montar times.';
-  if (draw.teams.length === 0) return missingPlayersText(draw.missingPlayers);
+  if (draw.teams.length === 0) return missingPlayersText(draw.missingPlayers, minTeams);
   const base = `${draw.teams.length} times de ${draw.teamSize}`;
   return draw.bench.length > 0 ? `${base} · ${draw.bench.length} aguardando` : `${base} · ninguém de fora`;
 }
@@ -15,7 +15,7 @@ function emptyState(title, text) {
   return h('div', { class: 'teams-empty' }, h('div', { class: 'teams-empty-title' }, title), h('p', {}, text));
 }
 
-function content(draw) {
+function content(draw, levels) {
   if (!draw) return [emptyState('Nenhum sorteio ainda', 'Os times aparecem aqui depois do sorteio.')];
   if (draw.teams.length === 0) {
     return [emptyState('Jogadores insuficientes', 'Marque mais jogadores como presentes e sorteie de novo.')];
@@ -27,11 +27,11 @@ function content(draw) {
       h('span', { class: 'balance-tag' }, draw.difference === 0 ? 'Equilíbrio perfeito' : `Diferença de ${starsText(draw.difference)}`),
       h('span', {}, 'entre o time mais forte e o mais fraco'),
     ),
-    h('div', { class: 'team-grid' }, draw.teams.map(teamCard)),
+    h('div', { class: 'team-grid' }, draw.teams.map((team) => teamCard(team, levels))),
   ];
 }
 
-export function createTeams({ onDraw, footer }) {
+export function createTeams({ levels, minTeams, onDraw, footer }) {
   const subtitle = h('p', { class: 'teams-subtitle' });
   const buttonLabel = h('span', {});
   const button = h('button', { type: 'button', class: 'draw-button', onClick: handleDraw }, swapIcon(), buttonLabel);
@@ -72,9 +72,9 @@ export function createTeams({ onDraw, footer }) {
     update(state) {
       const { draw } = state;
       buttonLabel.textContent = draw ? 'Sortear de novo' : 'Montar times';
-      subtitle.textContent = statusLine(draw);
+      subtitle.textContent = statusLine(draw, minTeams);
       stale.hidden = !draw?.stale;
-      body.replaceChildren(...content(draw));
+      body.replaceChildren(...content(draw, levels));
     },
   };
 }

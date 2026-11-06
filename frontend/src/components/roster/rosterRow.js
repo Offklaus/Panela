@@ -16,7 +16,7 @@ function presenceButton(player, onToggle) {
     : h('button', { ...props, class: 'presence presence-off' }, 'Ausente', name);
 }
 
-export function rosterRow({ player, onRating, onTogglePresence, onRemove }) {
+export function rosterRow({ player, levels, onRating, onTogglePresence, onRemove }) {
   return h(
     'li',
     { class: player.present ? 'roster-row is-present' : 'roster-row' },
@@ -27,6 +27,7 @@ export function rosterRow({ player, onRating, onTogglePresence, onRemove }) {
       h('span', { class: 'roster-name' }, player.name),
     ),
     starRating({
+      levels,
       value: player.rating,
       name: player.name,
       label: `Nível de ${player.name}`,

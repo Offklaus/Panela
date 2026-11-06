@@ -1,10 +1,33 @@
+import pg from 'pg';
 import { createDatabase } from '../../src/database/connection.js';
 import { migrate } from '../../src/database/migrate.js';
 import * as organizerModel from '../../src/models/organizerModel.js';
 
-export function createTestDb() {
-  const db = createDatabase(':memory:');
-  migrate(db);
+const TABLES = 'organizers, sessions, password_resets, login_throttle, players, draws';
+
+async function createDatabaseForThisProcess() {
+  const adminUrl = process.env.TEST_DATABASE_URL;
+  if (!adminUrl) throw new Error('Rode os testes com npm test: o tests/run.js sobe o Postgres de teste.');
+
+  const name = `test_${process.pid}`;
+  const admin = new pg.Client({ connectionString: adminUrl });
+  await admin.connect();
+  await admin.query(`CREATE DATABASE ${name}`);
+  await admin.end();
+
+  const url = new URL(adminUrl);
+  url.pathname = `/${name}`;
+  const db = createDatabase(url.href, { allowExitOnIdle: true });
+  await migrate(db);
+  return db;
+}
+
+// Cada arquivo de teste roda num processo e tem o próprio banco; cada chamada devolve esse banco vazio.
+let database;
+export async function createTestDb() {
+  database ??= createDatabaseForThisProcess();
+  const db = await database;
+  await db.query(`TRUNCATE ${TABLES} RESTART IDENTITY CASCADE`);
   return db;
 }
 

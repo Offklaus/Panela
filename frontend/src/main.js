@@ -4,6 +4,7 @@ import './styles/base.css';
 import './styles/auth.css';
 import './styles/roster.css';
 import './styles/teams.css';
+import { authLayout } from './components/auth/authLayout.js';
 import { forgotPasswordView } from './components/auth/forgotPasswordView.js';
 import { loginView } from './components/auth/loginView.js';
 import { resetPasswordView } from './components/auth/resetPasswordView.js';
@@ -11,14 +12,35 @@ import { signupView } from './components/auth/signupView.js';
 import { homeView } from './homeView.js';
 import { createRouter } from './router.js';
 import * as authApi from './services/authApi.js';
+import { getRules } from './services/rulesApi.js';
 import { createStore } from './state/store.js';
+import { h } from './utils/dom.js';
 import { mountNotice, showNotice } from './utils/notice.js';
 
 const AUTH_ROUTES = new Set(['/entrar', '/criar-conta', '/esqueci-senha', '/nova-senha']);
-const store = createStore({ organizer: null, roster: null, draw: null });
+const store = createStore({ organizer: null, roster: null, draw: null, rules: null });
+
+// Sem as regras não dá para montar a tela, e o frontend não guarda cópia delas.
+function showLoadError(message) {
+  document.getElementById('app').append(
+    authLayout({
+      title: 'Não foi possível abrir',
+      subtitle: message,
+      children: [h('button', { type: 'button', class: 'auth-submit', onClick: () => location.reload() }, 'Tentar de novo')],
+    }),
+  );
+}
 
 async function boot() {
   mountNotice();
+
+  try {
+    const { rules } = await getRules();
+    store.setState({ rules });
+  } catch (error) {
+    showLoadError(error.message);
+    return;
+  }
 
   try {
     const { organizer } = await authApi.me();

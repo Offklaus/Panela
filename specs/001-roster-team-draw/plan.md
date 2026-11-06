@@ -10,7 +10,7 @@
 
 O organizador cria uma conta, cadastra o elenco com níveis de 1 a 5 estrelas, marca quem veio
 e sorteia times de 5 equilibrados, com banco aleatório para quem sobra. O backend Express guarda
-tudo em SQLite, calcula resumo e sorteio e expõe uma API REST JSON sob `/api` com sessão por
+tudo em PostgreSQL, calcula resumo e sorteio e expõe uma API REST JSON sob `/api` com sessão por
 cookie. O frontend em JavaScript puro com Vite só chama a API e mostra o resultado. O sorteio
 usa banco aleatório, divisão gulosa e refinamento por trocas até nenhuma troca entre dois times
 diminuir a diferença entre eles ([research.md §9](research.md)).
@@ -20,16 +20,17 @@ diminuir a diferença entre eles ([research.md §9](research.md)).
 **Language/Version**: JavaScript (ES Modules) em Node.js 22 LTS no backend; JavaScript puro
 (ES2022) no navegador.
 
-**Primary Dependencies**: backend: Express 5, better-sqlite3, nodemailer, helmet,
-cookie-parser. Frontend: Vite (só desenvolvimento e build). Justificativas em
+**Primary Dependencies**: backend: Express 5, pg, nodemailer, helmet,
+cookie-parser. Frontend: Vite (só desenvolvimento e build). Testes do backend: embedded-postgres. Justificativas em
 [research.md](research.md#dependências-justificativa-exigida-pelo-princípio-vi).
 
-**Storage**: SQLite em arquivo (`backend/data/`, não versionado); em memória nos testes.
+**Storage**: PostgreSQL 17: local no desenvolvimento (`panela_dev`), Supabase em produção, Postgres
+embutido nos testes.
 
 **Testing**: `node:test` + `node:assert` nos dois projetos; integração HTTP com o app em porta
 efêmera e `fetch` nativo.
 
-**Target Platform**: servidor Node.js 22 (Linux ou Windows) com disco persistente; navegadores
+**Target Platform**: servidor Node.js 22 (Linux ou Windows); navegadores
 atuais (Chrome, Safari iOS, Firefox, Edge), a partir de 360 px de largura.
 
 **Project Type**: aplicação web (frontend + backend separados).
@@ -41,7 +42,7 @@ respostas da API abaixo de 300 ms em uso normal.
 do elenco no `localStorage`; nenhum dado do usuário via `innerHTML`.
 
 **Scale/Scope**: dezenas de organizadores, até 100 jogadores cada; 5 telas (entrar, criar conta,
-esqueci a senha, nova senha, principal); 13 endpoints.
+esqueci a senha, nova senha, principal); 14 endpoints.
 
 ## Constitution Check
 
@@ -54,8 +55,8 @@ esqueci a senha, nova senha, principal); 13 endpoints.
 | III. Sorteio Justo e Verificável | `TEAM_SIZE` só em `config/domain.js`; mínimo 2 times; cada presente uma vez; diferença na resposta; `rng` injetável | ✅ | ✅ |
 | IV. Testes nas Regras de Negócio | Testes unitários para cada serviço e para cada regra do sorteio; integração para cada endpoint (sucesso + erro) | ✅ | ✅ |
 | V. Interface fiel, acessível, pt-BR | Tela principal segue o canvas; telas de conta **devem ser desenhadas no canvas antes de implementadas** (vira tarefa); controles nativos, 44 px, 4,5:1, 360 px | ⚠ condicionado | ⚠ condicionado |
-| VI. Simplicidade | Sem framework de UI; 5 dependências de backend e 1 de frontend, todas justificadas; pastas novas registradas em Complexity Tracking | ✅ | ✅ |
-| Restrições Técnicas | Node 22, ES Modules, Express sob `/api`, formato único de erro em [contracts/api.md](contracts/api.md), código em inglês, `.env` fora do repositório, banco escolhido (SQLite) | ✅ | ✅ |
+| VI. Simplicidade | Sem framework de UI; 5 dependências de backend, 1 de frontend e 1 só de testes, todas justificadas; pastas novas registradas em Complexity Tracking | ✅ | ✅ |
+| Restrições Técnicas | Node 22, ES Modules, Express sob `/api`, formato único de erro em [contracts/api.md](contracts/api.md), código em inglês, `.env` fora do repositório, banco escolhido (PostgreSQL) | ✅ | ✅ |
 | Fluxo de Desenvolvimento | Spec diz "frontend e backend"; contratos antes da implementação; estrutura "Web application" | ✅ | ✅ |
 
 **Resultado**: aprovado. O item V não é violação: ele só impede implementar as telas de conta
@@ -83,8 +84,7 @@ specs/001-roster-team-draw/
 ```text
 backend/
 ├── package.json
-├── .env.example
-├── data/                          # arquivo SQLite (não versionado)
+├── scripts/                       # createDevDb: cria usuário e banco no Postgres local
 ├── src/
 │   ├── server.js                  # sobe o HTTP
 │   ├── app.js                     # monta o Express (usado também nos testes)
@@ -96,8 +96,8 @@ backend/
 │   │   ├── migrate.js
 │   │   └── migrations/
 │   │       └── 001_initial.sql
-│   ├── routes/                    # authRoutes, playerRoutes, drawRoutes, index
-│   ├── controllers/               # authController, playerController, drawController
+│   ├── routes/                    # authRoutes, playerRoutes, drawRoutes, rulesRoutes, index
+│   ├── controllers/               # authController, playerController, drawController, rulesController
 │   ├── services/
 │   │   ├── authService.js         # cadastro, login, bloqueio
 │   │   ├── sessionService.js
@@ -111,6 +111,7 @@ backend/
 │   ├── validators/                # authValidator, playerValidator
 │   └── utils/                     # crypto (scrypt, tokens), random (rng, shuffle, seeded), AppError
 └── tests/
+    ├── run.js                     # sobe o Postgres embutido e roda os testes
     ├── unit/                      # teamBalancer, drawService, rosterService, authService, ...
     └── integration/               # auth, players, draw
 
@@ -134,10 +135,10 @@ frontend/
 │   │   ├── star-rating/           # estrelas 1–5
 │   │   ├── teams/                 # "Times da rodada", card do time, aviso de lista alterada
 │   │   └── bench/                 # "Próximos · aguardando vaga"
-│   ├── services/                  # apiClient, authApi, rosterApi, drawApi
+│   ├── services/                  # apiClient, authApi, rosterApi, drawApi, rulesApi
 │   ├── state/                     # store com assinantes
-│   └── utils/                     # dom (h()), format (vírgula, iniciais, plural), vests
-└── tests/                         # format, store
+│   └── utils/                     # dom (h()), format (vírgula, iniciais, plural), rules (níveis), vests
+└── tests/                         # format, rules, store, vests
 ```
 
 **Structure Decision**: estrutura "Web application", usando as pastas `frontend/` e `backend/`
@@ -150,8 +151,8 @@ Princípio VI.
 
 | Pasta nova | Por que é necessária | Alternativa mais simples descartada porque |
 |------------|----------------------|--------------------------------------------|
-| `backend/src/database/migrations/` | Versionar o esquema do SQLite | SQL dentro do código mistura esquema e lógica de conexão |
-| `backend/data/` | Guardar o arquivo do banco fora de `src/` | Dentro de `src/` o arquivo de dados se misturaria ao código |
+| `backend/src/database/migrations/` | Versionar o esquema do banco | SQL dentro do código mistura esquema e lógica de conexão |
+| `backend/scripts/` | Criar usuário e banco de desenvolvimento no Postgres local | Passos manuais no `psql` são fáceis de errar e deixam a senha no histórico |
 | `backend/tests/unit/` e `backend/tests/integration/` | Separar testes rápidos dos que sobem o servidor | Uma pasta só não deixa rodar os grupos separadamente |
 | `frontend/tests/` | Testes de `utils/` e `state/` (Princípio IV) | Testes dentro de `src/` iriam para o build |
 | `frontend/src/components/auth/` | 4 telas de conta exigidas pela US1 | Espalhar as telas de conta nas pastas da tela principal confundiria responsabilidades |

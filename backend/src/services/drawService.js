@@ -1,5 +1,6 @@
 import { MIN_TEAMS, TEAM_SIZE, VESTS } from '../config/domain.js';
 import * as drawModel from '../models/drawModel.js';
+import * as organizerModel from '../models/organizerModel.js';
 import * as playerModel from '../models/playerModel.js';
 import { balanceTeams } from './teamBalancer.js';
 
@@ -7,11 +8,11 @@ const sumRatings = (players) => players.reduce((sum, player) => sum + player.rat
 
 export function createDrawService({ db, rng, now }) {
   // Monta o Draw de contracts/api.md com os dados atuais do elenco; quem foi removido some (FR-032).
-  function getDraw(organizerId) {
-    const saved = drawModel.findByOrganizer(db, organizerId);
+  async function getDraw(organizerId) {
+    const saved = await drawModel.findByOrganizer(db, organizerId);
     if (!saved) return null;
 
-    const playersById = new Map(playerModel.listByOrganizer(db, organizerId).map((player) => [player.id, player]));
+    const playersById = new Map((await playerModel.listByOrganizer(db, organizerId)).map((player) => [player.id, player]));
     const toRefs = (ids) =>
       ids
         .map((id) => playersById.get(id))
@@ -46,10 +47,15 @@ export function createDrawService({ db, rng, now }) {
   return {
     getDraw,
 
-    createDraw(organizerId) {
-      const present = playerModel.listPresentByOrganizer(db, organizerId);
-      const { teams, bench } = balanceTeams(present, { teamSize: TEAM_SIZE, minTeams: MIN_TEAMS, rng });
-      drawModel.upsert(db, { organizerId, createdAt: now().toISOString(), teams, bench });
+    // Com o organizador travado, uma alteração simultânea no elenco fica antes ou depois do sorteio,
+    // nunca no meio: se vier depois, marca o sorteio como desatualizado.
+    async createDraw(organizerId) {
+      await db.transaction(async (tx) => {
+        await organizerModel.lock(tx, organizerId);
+        const present = await playerModel.listPresentByOrganizer(tx, organizerId);
+        const { teams, bench } = balanceTeams(present, { teamSize: TEAM_SIZE, minTeams: MIN_TEAMS, rng });
+        await drawModel.upsert(tx, { organizerId, createdAt: now().toISOString(), teams, bench });
+      });
       return getDraw(organizerId);
     },
   };

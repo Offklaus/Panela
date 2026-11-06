@@ -11,6 +11,10 @@ function resolveFromBackend(value) {
 export function loadEnv(source = process.env) {
   const isProduction = source.NODE_ENV === 'production';
 
+  if (!source.DATABASE_URL) {
+    throw new Error('Defina DATABASE_URL no backend/.env (veja o README).');
+  }
+
   if (isProduction) {
     const missing = REQUIRED_IN_PRODUCTION.filter((name) => !source[name]);
     if (missing.length > 0) {
@@ -26,7 +30,7 @@ export function loadEnv(source = process.env) {
   return {
     isProduction,
     port,
-    databasePath: resolveFromBackend(source.DATABASE_PATH || path.join('data', 'panela.sqlite')),
+    databaseUrl: source.DATABASE_URL,
     appUrl: (source.APP_URL || 'http://localhost:5173').replace(/\/+$/, ''),
     frontendDistDir: source.FRONTEND_DIST_DIR ? resolveFromBackend(source.FRONTEND_DIST_DIR) : null,
     smtp: source.SMTP_HOST

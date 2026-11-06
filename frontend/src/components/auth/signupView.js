@@ -1,5 +1,6 @@
 import { signup } from '../../services/authApi.js';
 import { h } from '../../utils/dom.js';
+import { passwordHintText } from '../../utils/format.js';
 import { authLayout, clearErrors, formField, formMessage, showApiError, submitButton } from './authLayout.js';
 
 export function signupView({ mount, store, navigate }) {
@@ -10,7 +11,7 @@ export function signupView({ mount, store, navigate }) {
       label: 'Senha',
       type: 'password',
       autocomplete: 'new-password',
-      hint: 'Mínimo de 8 caracteres.',
+      hint: passwordHintText(store.getState().rules.passwordMinLength),
     }),
   };
   const message = formMessage();

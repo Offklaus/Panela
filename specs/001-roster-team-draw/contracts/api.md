@@ -46,6 +46,8 @@
 ## Tipos
 
 ```text
+Rules       { ratingMin: number, ratingMax: number, defaultRating: number,
+              passwordMinLength: number, minTeams: number }
 Organizer   { id: number, email: string }
 Player      { id: number, name: string, rating: 1..5, present: boolean }
 Summary     { presentCount: number, possibleTeams: number, averageRating: number | null }
@@ -62,6 +64,27 @@ Draw        { createdAt: string, stale: boolean, teamSize: 5, teams: Team[], ben
 - `averageRating` e `Team.average` vêm sem arredondar; o frontend mostra uma casa com vírgula.
 - `Draw.missingPlayers` é 0 quando há times; com menos de 10 presentes, `teams` é `[]` e `bench`
   traz todos os presentes (FR-022).
+
+## Regras
+
+Pública, porque a tela de criar conta precisa dela antes do login. O frontend lê estes valores ao
+abrir e não guarda cópia deles no código (constituição, Princípio II).
+
+| Método e rota | Corpo | Sucesso | Erros |
+|---------------|-------|---------|-------|
+| `GET /api/rules` | — | `200 { rules: Rules }` | — |
+
+```json
+{
+  "rules": {
+    "ratingMin": 1,
+    "ratingMax": 5,
+    "defaultRating": 3,
+    "passwordMinLength": 8,
+    "minTeams": 2
+  }
+}
+```
 
 ## Conta e acesso
 

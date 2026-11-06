@@ -1,5 +1,6 @@
 import { confirmPasswordReset } from '../../services/authApi.js';
 import { h } from '../../utils/dom.js';
+import { passwordHintText } from '../../utils/format.js';
 import { showNotice } from '../../utils/notice.js';
 import { authLayout, clearErrors, formField, formMessage, showApiError, submitButton } from './authLayout.js';
 
@@ -47,6 +48,7 @@ export function resetPasswordView({ mount, query, store, navigate }) {
     }
   }
 
-  mount.append(authLayout({ title: 'Nova senha', subtitle: 'Mínimo de 8 caracteres.', children: [form, links] }));
+  const subtitle = passwordHintText(store.getState().rules.passwordMinLength);
+  mount.append(authLayout({ title: 'Nova senha', subtitle, children: [form, links] }));
   fields.password.input.focus();
 }

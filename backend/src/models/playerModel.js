@@ -1,45 +1,48 @@
 const SELECT = 'SELECT id, name, rating, present FROM players';
 
-const toPlayer = (row) => (row ? { id: row.id, name: row.name, rating: row.rating, present: row.present === 1 } : null);
-
 export function listByOrganizer(db, organizerId) {
-  return db.prepare(`${SELECT} WHERE organizer_id = ? ORDER BY id`).all(organizerId).map(toPlayer);
+  return db.query(`${SELECT} WHERE organizer_id = $1 ORDER BY id`, [organizerId]);
 }
 
 export function listPresentByOrganizer(db, organizerId) {
-  return db.prepare(`${SELECT} WHERE organizer_id = ? AND present = 1 ORDER BY id`).all(organizerId).map(toPlayer);
+  return db.query(`${SELECT} WHERE organizer_id = $1 AND present ORDER BY id`, [organizerId]);
 }
 
-export function countByOrganizer(db, organizerId) {
-  return db.prepare('SELECT COUNT(*) FROM players WHERE organizer_id = ?').pluck().get(organizerId);
+export async function countByOrganizer(db, organizerId) {
+  const row = await db.one('SELECT COUNT(*)::int AS count FROM players WHERE organizer_id = $1', [organizerId]);
+  return row.count;
 }
 
 export function findByIdForOrganizer(db, organizerId, id) {
-  return toPlayer(db.prepare(`${SELECT} WHERE organizer_id = ? AND id = ?`).get(organizerId, id));
+  return db.one(`${SELECT} WHERE organizer_id = $1 AND id = $2`, [organizerId, id]);
 }
 
 export function findByNameKey(db, organizerId, nameKey) {
-  return toPlayer(db.prepare(`${SELECT} WHERE organizer_id = ? AND name_key = ?`).get(organizerId, nameKey));
+  return db.one(`${SELECT} WHERE organizer_id = $1 AND name_key = $2`, [organizerId, nameKey]);
 }
 
 export function insert(db, { organizerId, name, nameKey, rating, createdAt }) {
-  db.prepare(
-    'INSERT INTO players (organizer_id, name, name_key, rating, present, created_at) VALUES (?, ?, ?, ?, 1, ?)',
-  ).run(organizerId, name, nameKey, rating, createdAt);
+  return db.run('INSERT INTO players (organizer_id, name, name_key, rating, created_at) VALUES ($1, $2, $3, $4, $5)', [
+    organizerId,
+    name,
+    nameKey,
+    rating,
+    createdAt,
+  ]);
 }
 
 export function updateRating(db, organizerId, id, rating) {
-  db.prepare('UPDATE players SET rating = ? WHERE organizer_id = ? AND id = ?').run(rating, organizerId, id);
+  return db.run('UPDATE players SET rating = $1 WHERE organizer_id = $2 AND id = $3', [rating, organizerId, id]);
 }
 
 export function updatePresent(db, organizerId, id, present) {
-  db.prepare('UPDATE players SET present = ? WHERE organizer_id = ? AND id = ?').run(present ? 1 : 0, organizerId, id);
+  return db.run('UPDATE players SET present = $1 WHERE organizer_id = $2 AND id = $3', [present, organizerId, id]);
 }
 
 export function setAllPresent(db, organizerId, present) {
-  db.prepare('UPDATE players SET present = ? WHERE organizer_id = ?').run(present ? 1 : 0, organizerId);
+  return db.run('UPDATE players SET present = $1 WHERE organizer_id = $2', [present, organizerId]);
 }
 
-export function remove(db, organizerId, id) {
-  return db.prepare('DELETE FROM players WHERE organizer_id = ? AND id = ?').run(organizerId, id).changes === 1;
+export async function remove(db, organizerId, id) {
+  return (await db.run('DELETE FROM players WHERE organizer_id = $1 AND id = $2', [organizerId, id])) === 1;
 }

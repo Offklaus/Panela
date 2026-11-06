@@ -17,8 +17,12 @@ export function starsText(count) {
   return count === 1 ? '1 estrela' : `${count} estrelas`;
 }
 
-export function missingPlayersText(count) {
+export function missingPlayersText(count, minTeams) {
   return count === 1
-    ? 'Falta 1 jogador para fechar 2 times.'
-    : `Faltam ${count} jogadores para fechar 2 times.`;
+    ? `Falta 1 jogador para fechar ${minTeams} times.`
+    : `Faltam ${count} jogadores para fechar ${minTeams} times.`;
+}
+
+export function passwordHintText(minLength) {
+  return `Mínimo de ${minLength} caracteres.`;
 }

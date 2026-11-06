@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { createAuthController } from '../controllers/authController.js';
 import { createDrawController } from '../controllers/drawController.js';
 import { createPlayerController } from '../controllers/playerController.js';
+import { createRulesController } from '../controllers/rulesController.js';
 import { createRequireAuth } from '../middlewares/requireAuth.js';
 import { createAuthService } from '../services/authService.js';
 import { createDrawService } from '../services/drawService.js';
@@ -11,6 +12,7 @@ import { createSessionService } from '../services/sessionService.js';
 import { createAuthRoutes } from './authRoutes.js';
 import { createDrawRoutes } from './drawRoutes.js';
 import { createPlayerRoutes } from './playerRoutes.js';
+import { createRulesRoutes } from './rulesRoutes.js';
 
 // Monta as rotas de /api. Cada história registra as suas aqui.
 export function createApiRouter({ db, env, mailer, rng, now }) {
@@ -22,6 +24,7 @@ export function createApiRouter({ db, env, mailer, rng, now }) {
   const requireAuth = createRequireAuth(sessions);
 
   const router = Router();
+  router.use(createRulesRoutes({ controller: createRulesController() }));
   router.use(
     '/auth',
     createAuthRoutes({ controller: createAuthController({ auth, sessions, passwordReset, env }), requireAuth }),

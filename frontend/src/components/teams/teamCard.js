@@ -3,17 +3,15 @@ import { h } from '../../utils/dom.js';
 import { formatDecimal, starsText } from '../../utils/format.js';
 import { vestInfo } from '../../utils/vests.js';
 
-const LEVELS = [1, 2, 3, 4, 5];
-
-function miniStars(rating) {
+function miniStars(rating, levels) {
   return h(
     'span',
-    { class: 'mini-stars', role: 'img', 'aria-label': `${starsText(rating)} de 5` },
-    LEVELS.map((level) => starIcon({ size: 14, filled: level <= rating })),
+    { class: 'mini-stars', role: 'img', 'aria-label': `${starsText(rating)} de ${levels.at(-1)}` },
+    levels.map((level) => starIcon({ size: 14, filled: level <= rating })),
   );
 }
 
-export function teamCard(team) {
+export function teamCard(team, levels) {
   const vest = vestInfo(team.vest);
   return h(
     'article',
@@ -41,7 +39,7 @@ export function teamCard(team) {
       'ol',
       { class: 'team-players' },
       team.players.map((player) =>
-        h('li', { class: 'team-player' }, h('span', { class: 'team-player-name' }, player.name), miniStars(player.rating)),
+        h('li', { class: 'team-player' }, h('span', { class: 'team-player-name' }, player.name), miniStars(player.rating, levels)),
       ),
     ),
   );

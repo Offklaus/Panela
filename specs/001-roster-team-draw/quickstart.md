@@ -7,20 +7,31 @@ dados estão em [contracts/api.md](contracts/api.md) e [data-model.md](data-mode
 
 ## Pré-requisitos
 
-- Node.js 22 LTS ou superior e npm.
+- Node.js 22 LTS ou superior e npm. No Windows, se o PowerShell bloquear o `npm`, use `npm.cmd`.
+- PostgreSQL 17 local em execução e a senha do usuário `postgres`.
 - Opcional: um servidor SMTP. Sem ele, no desenvolvimento, o link de recuperação de senha
   aparece no log do backend.
 
 ## Subir o projeto
+
+Crie o arquivo `backend/.env`, que fica fora do repositório, com esta linha e uma senha só sua:
+
+```dotenv
+DATABASE_URL=postgres://panela_dev:troque-esta-senha@localhost:5432/panela_dev
+```
 
 Backend, num terminal (porta 3000):
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
+npm run db:create
 npm run dev
 ```
+
+O `db:create` cria esse usuário e o banco no Postgres local e pede a senha do `postgres` no terminal,
+sem guardá-la. As tabelas são criadas quando o backend sobe. As demais variáveis estão em
+[Variáveis do backend](../../README.md#variáveis-do-backend).
 
 Frontend, em outro terminal (porta 5173, com proxy de `/api` para o backend):
 

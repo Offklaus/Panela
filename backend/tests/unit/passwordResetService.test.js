@@ -17,7 +17,7 @@ let mails;
 let organizer;
 
 beforeEach(async () => {
-  const db = createTestDb();
+  const db = await createTestDb();
   clock = createClock();
   mails = [];
   const mailer = {
@@ -71,11 +71,11 @@ test('o link vale uma vez só', async () => {
 });
 
 test('confirmar troca a senha e encerra todas as sessões', async () => {
-  const { token: sessionToken } = sessions.createSession(organizer.id);
+  const { token: sessionToken } = await sessions.createSession(organizer.id);
   await service.requestReset({ email: EMAIL });
   await service.confirmReset({ token: tokenFrom(mails[0].link), password: NEW_PASSWORD });
 
-  assert.equal(sessions.resolveSession(sessionToken), null);
+  assert.equal(await sessions.resolveSession(sessionToken), null);
   assert.equal((await auth.login({ email: EMAIL, password: NEW_PASSWORD })).id, organizer.id);
   await assert.rejects(auth.login({ email: EMAIL, password: OLD_PASSWORD }), expectCode('INVALID_CREDENTIALS'));
 });

@@ -5,6 +5,8 @@ import { AppError } from '../utils/AppError.js';
 import { hashPassword, verifyPassword } from '../utils/crypto.js';
 import { validateEmail, validateNewPassword, validatePassword } from '../validators/authValidator.js';
 
+const UNIQUE_VIOLATION = '23505';
+
 const emailTaken = () =>
   new AppError(409, 'EMAIL_TAKEN', 'Já existe uma conta com esse e-mail.', { field: 'email' });
 
@@ -30,13 +32,13 @@ export function createAuthService({ db, now }) {
     async signup(input) {
       const email = validateEmail(input?.email);
       const password = validateNewPassword(input?.password);
-      if (organizerModel.findByEmail(db, email)) throw emailTaken();
+      if (await organizerModel.findByEmail(db, email)) throw emailTaken();
 
       const passwordHash = await hashPassword(password);
       try {
-        return organizerModel.create(db, { email, passwordHash, createdAt: now().toISOString() });
+        return await organizerModel.create(db, { email, passwordHash, createdAt: now().toISOString() });
       } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') throw emailTaken();
+        if (error.code === UNIQUE_VIOLATION) throw emailTaken();
         throw error;
       }
     },
@@ -46,18 +48,18 @@ export function createAuthService({ db, now }) {
       const password = validatePassword(input?.password);
       const current = now();
 
-      const throttle = loginThrottleModel.get(db, email);
+      const throttle = await loginThrottleModel.get(db, email);
       if (throttle?.lockedUntil && throttle.lockedUntil > current.toISOString()) {
         throw loginLocked(throttle.lockedUntil, current);
       }
 
-      const organizer = organizerModel.findByEmail(db, email);
+      const organizer = await organizerModel.findByEmail(db, email);
       const passwordMatches = organizer
         ? await verifyPassword(password, organizer.passwordHash)
         : (await verifyPassword(password, await getDummyHash()), false);
 
       if (!passwordMatches) {
-        loginThrottleModel.registerFailure(db, email, {
+        await loginThrottleModel.registerFailure(db, email, {
           now: current,
           maxFailures: LOGIN_MAX_FAILURES,
           lockMinutes: LOGIN_LOCK_MINUTES,
@@ -65,7 +67,7 @@ export function createAuthService({ db, now }) {
         throw invalidCredentials();
       }
 
-      loginThrottleModel.reset(db, email);
+      await loginThrottleModel.reset(db, email);
       return { id: organizer.id, email: organizer.email };
     },
   };

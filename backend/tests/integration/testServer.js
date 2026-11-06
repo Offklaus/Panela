@@ -1,12 +1,10 @@
 import { createApp } from '../../src/app.js';
-import { createDatabase } from '../../src/database/connection.js';
-import { migrate } from '../../src/database/migrate.js';
 import { createSeededRng } from '../../src/utils/random.js';
+import { createTestDb } from '../unit/testDb.js';
 
-// Sobe o app numa porta efêmera, com banco em memória, sorteio com semente e e-mail falso.
+// Sobe o app numa porta efêmera, com banco de teste, sorteio com semente e e-mail falso.
 export async function startTestServer({ now } = {}) {
-  const db = createDatabase(':memory:');
-  migrate(db);
+  const db = await createTestDb();
 
   const sentMails = [];
   const mailer = {
@@ -30,10 +28,7 @@ export async function startTestServer({ now } = {}) {
     close: () =>
       new Promise((resolve) => {
         server.closeAllConnections();
-        server.close(() => {
-          db.close();
-          resolve();
-        });
+        server.close(() => db.close().then(resolve));
       }),
   };
 }

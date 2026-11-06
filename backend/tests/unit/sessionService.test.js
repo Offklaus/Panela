@@ -9,53 +9,53 @@ let clock;
 let sessions;
 let organizer;
 
-beforeEach(() => {
-  db = createTestDb();
+beforeEach(async () => {
+  db = await createTestDb();
   clock = createClock();
   sessions = createSessionService({ db, now: clock.now });
-  organizer = insertOrganizer(db);
+  organizer = await insertOrganizer(db);
 });
 
-const countSessions = () => db.prepare('SELECT COUNT(*) FROM sessions').pluck().get();
+const countSessions = async () => (await db.one('SELECT COUNT(*)::int AS count FROM sessions')).count;
 
-test('createSession guarda só o hash do token e vale 30 dias', () => {
-  const { token } = sessions.createSession(organizer.id);
-  const row = db.prepare('SELECT token_hash, expires_at FROM sessions').get();
+test('createSession guarda só o hash do token e vale 30 dias', async () => {
+  const { token } = await sessions.createSession(organizer.id);
+  const row = await db.one('SELECT token_hash, expires_at FROM sessions');
   assert.notEqual(row.token_hash, token);
   assert.equal(row.token_hash, hashToken(token));
-  assert.equal(row.expires_at, '2026-12-01T12:00:00.000Z');
+  assert.equal(row.expires_at.toISOString(), '2026-12-01T12:00:00.000Z');
 });
 
-test('resolveSession devolve o organizador da sessão', () => {
-  const { token } = sessions.createSession(organizer.id);
-  assert.deepEqual(sessions.resolveSession(token), { id: organizer.id, email: organizer.email });
+test('resolveSession devolve o organizador da sessão', async () => {
+  const { token } = await sessions.createSession(organizer.id);
+  assert.deepEqual(await sessions.resolveSession(token), { id: organizer.id, email: organizer.email });
 });
 
-test('sessão vencida vira null e é apagada', () => {
-  const { token } = sessions.createSession(organizer.id);
+test('sessão vencida vira null e é apagada', async () => {
+  const { token } = await sessions.createSession(organizer.id);
   clock.advanceDays(30);
-  assert.equal(sessions.resolveSession(token), null);
-  assert.equal(countSessions(), 0);
+  assert.equal(await sessions.resolveSession(token), null);
+  assert.equal(await countSessions(), 0);
 });
 
-test('token vazio ou desconhecido devolve null', () => {
-  assert.equal(sessions.resolveSession(undefined), null);
-  assert.equal(sessions.resolveSession('desconhecido'), null);
+test('token vazio ou desconhecido devolve null', async () => {
+  assert.equal(await sessions.resolveSession(undefined), null);
+  assert.equal(await sessions.resolveSession('desconhecido'), null);
 });
 
-test('endSession apaga a sessão', () => {
-  const { token } = sessions.createSession(organizer.id);
-  sessions.endSession(token);
-  assert.equal(sessions.resolveSession(token), null);
+test('endSession apaga a sessão', async () => {
+  const { token } = await sessions.createSession(organizer.id);
+  await sessions.endSession(token);
+  assert.equal(await sessions.resolveSession(token), null);
 });
 
-test('endAllSessions apaga todas as sessões do organizador e só dele', () => {
-  const other = insertOrganizer(db, 'outro@exemplo.com');
-  sessions.createSession(organizer.id);
-  sessions.createSession(organizer.id);
-  const { token: otherToken } = sessions.createSession(other.id);
+test('endAllSessions apaga todas as sessões do organizador e só dele', async () => {
+  const other = await insertOrganizer(db, 'outro@exemplo.com');
+  await sessions.createSession(organizer.id);
+  await sessions.createSession(organizer.id);
+  const { token: otherToken } = await sessions.createSession(other.id);
 
-  sessions.endAllSessions(organizer.id);
-  assert.equal(countSessions(), 1);
-  assert.equal(sessions.resolveSession(otherToken).id, other.id);
+  await sessions.endAllSessions(organizer.id);
+  assert.equal(await countSessions(), 1);
+  assert.equal((await sessions.resolveSession(otherToken)).id, other.id);
 });

@@ -7,21 +7,23 @@ motivo e as alternativas descartadas.
 
 ## 1. Banco de dados (resolve TODO(DATABASE) da constituição)
 
-- **Decisão**: SQLite em arquivo, acessado com `better-sqlite3`.
-- **Motivo**: a escala é pequena (dezenas de organizadores, até 100 jogadores cada). Um arquivo
-  único dispensa servidor de banco no desenvolvimento. A API síncrona simplifica transações. Há
-  binários prontos para Node 22 no Windows e no Linux.
-- **Consequência**: em produção, a hospedagem precisa de disco persistente. Todo acesso a dados
-  fica em `models/` e `database/`, então uma troca futura para PostgreSQL mexe só nessas pastas.
-- **Alternativas**: PostgreSQL (por exemplo, Supabase) exige servidor ou conta já no
-  desenvolvimento; é a escolha certa se a hospedagem tiver disco efêmero. `node:sqlite` não
-  traz dependência, mas é experimental no Node 22. Arquivo JSON não tem transações nem escrita
-  concorrente segura.
+- **Decisão** (revista em 2026-11-02, substitui o SQLite): PostgreSQL 17, acessado com `pg`. No
+  desenvolvimento, o Postgres local (banco `panela_dev`, criado com `npm run db:create`). Em
+  produção, o Supabase, usado só como banco: o login continua no backend (Princípio II).
+- **Motivo**: o projeto vai rodar no Supabase, e desenvolver na mesma versão do mesmo banco evita
+  diferenças de comportamento. A hospedagem também deixa de precisar de disco persistente.
+- **Consequência**: com conexões simultâneas, as alterações de um mesmo elenco e o sorteio
+  travam a linha do organizador (`SELECT ... FOR UPDATE`), para o limite de jogadores, o nome
+  repetido e o aviso de lista alterada valerem com pedidos simultâneos. Todas as tabelas têm RLS
+  ligado sem políticas, porque o Supabase expõe o schema `public` numa API pública.
+- **Alternativas**: SQLite (decisão original) exigiria disco persistente e uma nova migração para
+  ir ao Supabase. Supabase Auth prenderia o login a um fornecedor e tiraria a regra do backend.
 
 ## 2. Migrações
 
 - **Decisão**: arquivos SQL numerados em `backend/src/database/migrations/`, aplicados na subida
-  do servidor e registrados na tabela `schema_migrations`.
+  do servidor numa única transação, com trava para instâncias simultâneas, e registrados na tabela
+  `schema_migrations`.
 - **Alternativas**: knex, umzug ou similar: dependência sem ganho para poucas tabelas.
 
 ## 3. Hash de senha (FR-008)
@@ -108,8 +110,10 @@ motivo e as alternativas descartadas.
 ## 13. Testes (Princípio IV)
 
 - **Decisão**: `node:test` e `node:assert` nos dois projetos. Os testes de integração sobem o app
-  numa porta efêmera, usam o `fetch` nativo e um banco SQLite em memória.
-- **Alternativas**: Jest, Vitest e supertest são dependências evitáveis.
+  numa porta efêmera e usam o `fetch` nativo. No backend, `tests/run.js` sobe um Postgres embutido
+  (`embedded-postgres`), real e descartável, e cada arquivo de teste usa um banco próprio.
+- **Alternativas**: Jest, Vitest e supertest são dependências evitáveis. `pg-mem` é só um emulador
+  e não reproduz transações e travas. Docker não está disponível em todas as máquinas.
 
 ## 14. Frontend em JavaScript puro (Princípio VI)
 
@@ -134,8 +138,9 @@ motivo e as alternativas descartadas.
 
 ## 17. Configuração
 
-- **Decisão**: `node --env-file=.env`, nativo no Node 22, sem `dotenv`. `.env.example` vai para o
-  repositório; `.env` nunca.
+- **Decisão**: `node --env-file=.env`, nativo no Node 22, sem `dotenv`. `.env` e `.env.example`
+  ficam fora do repositório; as variáveis estão listadas no README. O `npm start` usa
+  `--env-file-if-exists` (Node 22.9 ou superior), porque em produção elas podem vir do ambiente.
 
 ## 18. Express 5
 
@@ -147,7 +152,8 @@ motivo e as alternativas descartadas.
 | Projeto | Pacote | Por quê |
 |---------|--------|---------|
 | backend | `express` | Exigido pela constituição |
-| backend | `better-sqlite3` | Banco (item 1) |
+| backend | `pg` | Banco (item 1) |
+| backend (dev) | `embedded-postgres` | Postgres real nos testes, sem Docker (item 13) |
 | backend | `nodemailer` | E-mail de recuperação de senha (item 8) |
 | backend | `helmet` | Cabeçalhos de segurança (item 16) |
 | backend | `cookie-parser` | Leitura do cookie de sessão, mantido pelo time do Express |

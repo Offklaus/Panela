@@ -12,15 +12,15 @@ export function createPasswordResetService({ db, now, mailer, appUrl, sessions }
     // Responde igual com ou sem conta (FR-006); o e-mail sai sem esperar, para o tempo não denunciar a conta.
     async requestReset(input) {
       const email = validateEmail(input?.email);
-      const organizer = organizerModel.findByEmail(db, email);
+      const organizer = await organizerModel.findByEmail(db, email);
       if (!organizer) return;
 
       const current = now();
       const oneHourAgo = new Date(current.getTime() - 60 * 60_000).toISOString();
-      if (passwordResetModel.countCreatedSince(db, organizer.id, oneHourAgo) >= RESET_MAX_PER_HOUR) return;
+      if ((await passwordResetModel.countCreatedSince(db, organizer.id, oneHourAgo)) >= RESET_MAX_PER_HOUR) return;
 
       const token = generateToken();
-      passwordResetModel.create(db, {
+      await passwordResetModel.create(db, {
         organizerId: organizer.id,
         tokenHash: hashToken(token),
         createdAt: current.toISOString(),
@@ -37,16 +37,16 @@ export function createPasswordResetService({ db, now, mailer, appUrl, sessions }
       const token = validateResetToken(input?.token);
       const password = validateNewPassword(input?.password);
 
-      const reset = passwordResetModel.findByTokenHash(db, hashToken(token));
+      const reset = await passwordResetModel.findByTokenHash(db, hashToken(token));
       const nowIso = now().toISOString();
       if (!reset || reset.usedAt || reset.expiresAt <= nowIso) throw invalidToken();
 
       const passwordHash = await hashPassword(password);
-      db.transaction(() => {
-        if (!passwordResetModel.markUsed(db, reset.id, nowIso)) throw invalidToken();
-        organizerModel.updatePasswordHash(db, reset.organizerId, passwordHash);
-      })();
-      sessions.endAllSessions(reset.organizerId);
+      await db.transaction(async (tx) => {
+        if (!(await passwordResetModel.markUsed(tx, reset.id, nowIso))) throw invalidToken();
+        await organizerModel.updatePasswordHash(tx, reset.organizerId, passwordHash);
+      });
+      await sessions.endAllSessions(reset.organizerId);
     },
   };
 }

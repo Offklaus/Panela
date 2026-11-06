@@ -5,8 +5,8 @@ import { starRating } from '../star-rating/starRating.js';
 
 const INLINE_ERRORS = new Set(['VALIDATION_ERROR', 'NAME_TAKEN', 'ROSTER_FULL']);
 
-export function createPlayerForm({ onSubmit }) {
-  let rating = 3;
+export function createPlayerForm({ levels, defaultRating, onSubmit }) {
+  let rating = defaultRating;
 
   const input = h('input', {
     id: 'new-player-name',
@@ -30,6 +30,7 @@ export function createPlayerForm({ onSubmit }) {
   function renderStars(focusLevel) {
     stars.replaceChildren(
       starRating({
+        levels,
         value: rating,
         name: 'Nível do novo jogador',
         label: 'Nível do novo jogador',

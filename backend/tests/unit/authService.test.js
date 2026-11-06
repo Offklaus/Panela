@@ -9,9 +9,9 @@ const PASSWORD = 'senha-boa-123';
 let clock;
 let auth;
 
-beforeEach(() => {
+beforeEach(async () => {
   clock = createClock();
-  auth = createAuthService({ db: createTestDb(), now: clock.now });
+  auth = createAuthService({ db: await createTestDb(), now: clock.now });
 });
 
 test('signup guarda o e-mail sem espaços nas pontas e em minúsculas', async () => {

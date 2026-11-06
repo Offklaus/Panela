@@ -1,32 +1,32 @@
 export function upsert(db, { organizerId, createdAt, teams, bench }) {
-  db.prepare(
-    `INSERT INTO draws (organizer_id, created_at, teams_json, bench_json, stale) VALUES (?, ?, ?, ?, 0)
+  return db.run(
+    `INSERT INTO draws (organizer_id, created_at, teams_json, bench_json, stale) VALUES ($1, $2, $3::jsonb, $4::jsonb, FALSE)
      ON CONFLICT (organizer_id) DO UPDATE SET
        created_at = excluded.created_at,
        teams_json = excluded.teams_json,
        bench_json = excluded.bench_json,
-       stale = 0`,
-  ).run(organizerId, createdAt, JSON.stringify(teams), JSON.stringify(bench));
+       stale = FALSE`,
+    [organizerId, createdAt, JSON.stringify(teams), JSON.stringify(bench)],
+  );
 }
 
-export function findByOrganizer(db, organizerId) {
-  const row = db
-    .prepare('SELECT created_at AS createdAt, teams_json, bench_json, stale FROM draws WHERE organizer_id = ?')
-    .get(organizerId);
+export async function findByOrganizer(db, organizerId) {
+  const row = await db.one('SELECT created_at, teams_json, bench_json, stale FROM draws WHERE organizer_id = $1', [organizerId]);
   if (!row) return null;
   return {
-    createdAt: row.createdAt,
-    teams: JSON.parse(row.teams_json),
-    bench: JSON.parse(row.bench_json),
-    stale: row.stale === 1,
+    createdAt: row.created_at.toISOString(),
+    teams: row.teams_json,
+    bench: row.bench_json,
+    stale: row.stale,
   };
 }
 
-export function isStale(db, organizerId) {
-  return db.prepare('SELECT stale FROM draws WHERE organizer_id = ?').pluck().get(organizerId) === 1;
+export async function isStale(db, organizerId) {
+  const row = await db.one('SELECT stale FROM draws WHERE organizer_id = $1', [organizerId]);
+  return row?.stale === true;
 }
 
 // Sem sorteio salvo, não faz nada.
 export function setStale(db, organizerId) {
-  db.prepare('UPDATE draws SET stale = 1 WHERE organizer_id = ?').run(organizerId);
+  return db.run('UPDATE draws SET stale = TRUE WHERE organizer_id = $1', [organizerId]);
 }

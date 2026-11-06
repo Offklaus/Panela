@@ -6,8 +6,8 @@ import { createMailer } from './services/mailService.js';
 import { defaultRng } from './utils/random.js';
 
 const env = loadEnv();
-const db = createDatabase(env.databasePath);
-migrate(db);
+const db = createDatabase(env.databaseUrl);
+await migrate(db);
 
 const app = createApp({ db, env, mailer: createMailer(env), rng: defaultRng });
 

@@ -8,6 +8,7 @@ import * as drawApi from './services/drawApi.js';
 import * as rosterApi from './services/rosterApi.js';
 import { h } from './utils/dom.js';
 import { clearNotice, showNotice } from './utils/notice.js';
+import { ratingLevels } from './utils/rules.js';
 
 // Mantém o foco no mesmo controle depois que a lista é redesenhada.
 function preserveFocus(update) {
@@ -17,6 +18,9 @@ function preserveFocus(update) {
 }
 
 export function homeView({ mount, store, navigate }) {
+  const { rules } = store.getState();
+  const levels = ratingLevels(rules);
+
   function signOut() {
     store.setState({ organizer: null, roster: null, draw: null });
     navigate('/entrar');
@@ -80,6 +84,8 @@ export function homeView({ mount, store, navigate }) {
 
   const header = createHeader({ onLogout: logout });
   const form = createPlayerForm({
+    levels,
+    defaultRating: rules.defaultRating,
     onSubmit: async (player) => {
       try {
         await afterRosterChange(await rosterApi.addPlayer(player));
@@ -94,6 +100,7 @@ export function homeView({ mount, store, navigate }) {
   });
   const roster = createRoster({
     form: form.el,
+    levels,
     onRating: (player, rating) => saveRoster(() => rosterApi.updatePlayer(player.id, { rating })),
     onTogglePresence: (player) => saveRoster(() => rosterApi.setPresence(player.id, !player.present)),
     onRemove: (player) => saveRoster(() => rosterApi.removePlayer(player.id)),
@@ -102,7 +109,7 @@ export function homeView({ mount, store, navigate }) {
   });
 
   const bench = createBench();
-  const teams = createTeams({ onDraw: drawTeams, footer: bench.el });
+  const teams = createTeams({ levels, minTeams: rules.minTeams, onDraw: drawTeams, footer: bench.el });
 
   mount.append(
     h(
