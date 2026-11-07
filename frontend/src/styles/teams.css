@@ -31,6 +31,10 @@
 }
 
 .back-button:hover {
+  background: var(--color-line);
+}
+
+.on-dark .back-button:hover {
   background: var(--color-dark-surface);
 }
 

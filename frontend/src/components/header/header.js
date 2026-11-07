@@ -1,8 +1,10 @@
 import { ballIcon } from '../../assets/icons/icons.js';
 import { h } from '../../utils/dom.js';
+import { createAccountMenu } from './accountMenu.js';
 
-// Só a marca e "Sair": o resumo saiu do topo (feature 002, FR-002 e FR-003).
-export function createHeader({ onLogout }) {
+// Marca e menu da conta, no lugar do antigo "Sair" (FR-001 da 004).
+export function createHeader({ email, onLogout }) {
+  const menu = createAccountMenu({ email, onLogout });
   return {
     el: h(
       'header',
@@ -13,7 +15,8 @@ export function createHeader({ onLogout }) {
         h('div', { class: 'brand-logo' }, ballIcon({ size: 24 })),
         h('span', { class: 'display brand-title' }, 'Times de Society'),
       ),
-      h('button', { type: 'button', class: 'btn btn-ghost', onClick: onLogout }, 'Sair'),
+      menu.el,
     ),
+    close: menu.close,
   };
 }

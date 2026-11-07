@@ -47,3 +47,10 @@ export function s(tag, attributes = {}, ...children) {
 export function clear(node) {
   node.replaceChildren();
 }
+
+// Mantém o foco no mesmo controle depois que uma lista é redesenhada.
+export function preserveFocus(update) {
+  const key = document.activeElement?.dataset?.focusKey;
+  update();
+  if (key) document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.focus();
+}

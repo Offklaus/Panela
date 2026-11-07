@@ -9,6 +9,7 @@ import { forgotPasswordView } from './components/auth/forgotPasswordView.js';
 import { loginView } from './components/auth/loginView.js';
 import { resetPasswordView } from './components/auth/resetPasswordView.js';
 import { signupView } from './components/auth/signupView.js';
+import { myfutView } from './myfutView.js';
 import { rosterView } from './rosterView.js';
 import { createRouter } from './router.js';
 import * as authApi from './services/authApi.js';
@@ -61,6 +62,7 @@ async function boot() {
       '/nova-senha': withStore(resetPasswordView),
       '/': withStore(rosterView),
       '/times': withStore(teamsView),
+      '/myfut': withStore(myfutView),
     },
     beforeEach(path) {
       const signedIn = Boolean(store.getState().organizer);

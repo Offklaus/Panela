@@ -1,4 +1,4 @@
-/* Tela Elenco: canvas "Elenco · celular" */
+/* Telas Elenco e MyFUT: canvas "Elenco · celular" e "MyFUT · celular" */
 .card {
   min-width: 0;
   border-radius: var(--radius-lg);
@@ -110,17 +110,46 @@
   padding: 0;
 }
 
-/* Duas linhas: nome, posição e remover em cima; estrelas e presença embaixo (research §10 da 003) */
+/* Elenco: uma linha por jogador, com posição e nível só para leitura (FR-009 da 004) */
 .roster-row {
   display: flex;
-  flex-direction: column;
-  padding: 6px 4px 8px 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 16px;
   border-bottom: 1px solid var(--color-line);
   background: var(--color-surface);
 }
 
 .roster-row.is-present {
   background: var(--color-row-present);
+}
+
+.roster-row .roster-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.roster-rating {
+  flex-shrink: 0;
+  width: 34px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.roster-row .presence {
+  flex-shrink: 0;
+  min-width: 96px;
+  padding: 0 10px;
+}
+
+/* MyFUT: duas linhas, nome, posição e remover em cima e estrelas embaixo (research §2 da 004) */
+.myfut-row {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 4px 8px 16px;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-surface);
 }
 
 .roster-line {
@@ -142,7 +171,7 @@
   gap: 12px;
 }
 
-.roster-row .star-rating {
+.myfut-row .star-rating {
   margin-left: -10px;
 }
 
@@ -180,6 +209,13 @@
 .position-tag-def {
   background: var(--color-surface);
   color: var(--color-ink);
+}
+
+.position-tag-small {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
 }
 
 .position-tag-none {
@@ -293,6 +329,10 @@
 
 .roster-empty[hidden] {
   display: none;
+}
+
+.roster-empty p {
+  margin: 0 0 12px;
 }
 
 /* Em menos de 400 px, a lista ocupa a largura toda para as 5 estrelas e a presença caberem (research §10) */

@@ -19,10 +19,12 @@ export function createDrawBar({ label, onDraw }) {
 
   return {
     el: h('footer', { class: 'draw-bar' }, notice, button),
-    update({ countText = null, shortfallText = null } = {}) {
+    // `noticeLink` ({ href, text }) leva à tela onde o aviso se resolve (FR-012 da 004).
+    update({ countText = null, shortfallText = null, noticeLink = null } = {}) {
       count.textContent = countText ? `· ${countText}` : '';
       count.hidden = !countText;
-      notice.textContent = shortfallText ?? '';
+      const link = shortfallText && noticeLink ? [' ', h('a', { class: 'draw-bar-notice-link', href: noticeLink.href }, noticeLink.text)] : [];
+      notice.replaceChildren(shortfallText ?? '', ...link);
       notice.hidden = !shortfallText;
     },
   };
