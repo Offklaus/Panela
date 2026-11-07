@@ -16,4 +16,6 @@ export const LOGIN_LOCK_MINUTES = 15;
 export const RESET_TOKEN_MINUTES = 60;
 export const RESET_MAX_PER_HOUR = 3;
 
+export const POSITIONS = Object.freeze(['ATA', 'DEF']);
+
 export const VESTS = Object.freeze(['green', 'white', 'orange', 'blue', 'pink', 'purple', 'yellow', 'cyan']);

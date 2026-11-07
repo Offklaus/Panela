@@ -1,7 +1,7 @@
 import { h } from '../../utils/dom.js';
 import { rosterRow } from './rosterRow.js';
 
-export function createRoster({ form, levels, onRating, onTogglePresence, onRemove, onAllPresent, onClearPresence }) {
+export function createRoster({ form, levels, onRating, onTogglePresence, onRemove, onPosition, onAllPresent, onClearPresence }) {
   const count = h('span', { class: 'roster-count' });
   const list = h('ul', { class: 'roster-list' });
   const empty = h('p', { class: 'roster-empty', hidden: true }, 'Nenhum jogador ainda. Adicione o primeiro acima.');
@@ -30,7 +30,7 @@ export function createRoster({ form, levels, onRating, onTogglePresence, onRemov
     update(state) {
       const players = state.roster?.players ?? [];
       count.textContent = state.roster ? `· ${players.length}` : '';
-      list.replaceChildren(...players.map((player) => rosterRow({ player, levels, onRating, onTogglePresence, onRemove })));
+      list.replaceChildren(...players.map((player) => rosterRow({ player, levels, onRating, onTogglePresence, onRemove, onPosition })));
       empty.hidden = !state.roster || players.length > 0;
     },
   };

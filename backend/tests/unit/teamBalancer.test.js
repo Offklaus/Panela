@@ -5,7 +5,8 @@ import { createSeededRng } from '../../src/utils/random.js';
 
 const OPTIONS = { teamSize: 5, minTeams: 2 };
 
-const makePlayers = (ratings) => ratings.map((rating, index) => ({ id: index + 1, rating }));
+const makePlayers = (ratings) =>
+  ratings.map((rating, index) => ({ id: index + 1, rating, position: index % 2 === 0 ? 'ATA' : 'DEF' }));
 const randomRatings = (rng, count) => Array.from({ length: count }, () => 1 + Math.floor(rng() * 5));
 const draw = (players, seed = 1) => balanceTeams(players, { ...OPTIONS, rng: createSeededRng(seed) });
 const sortIds = (ids) => [...ids].sort((a, b) => a - b);
@@ -19,15 +20,18 @@ function assertEveryoneOnce(result, players) {
   assert.deepEqual(sortIds([...result.teams.flat(), ...result.bench]), sortIds(players.map((player) => player.id)));
 }
 
-// FR-024: para quaisquer dois times, nenhuma troca de um jogador de cada diminui a diferença entre eles.
+// FR-013 da 003: para quaisquer dois times, nenhuma troca entre jogadores da mesma posição diminui a
+// diferença entre eles.
 function assertNoImprovingSwap(result, players) {
   const ratingById = new Map(players.map((player) => [player.id, player.rating]));
+  const positionById = new Map(players.map((player) => [player.id, player.position]));
   const totals = teamTotals(result, players);
   for (let i = 0; i < result.teams.length; i++) {
     for (let j = i + 1; j < result.teams.length; j++) {
       const difference = totals[i] - totals[j];
       for (const a of result.teams[i]) {
         for (const b of result.teams[j]) {
+          if (positionById.get(a) !== positionById.get(b)) continue;
           const afterSwap = difference - 2 * (ratingById.get(a) - ratingById.get(b));
           assert.ok(
             Math.abs(afterSwap) >= Math.abs(difference),
@@ -76,7 +80,7 @@ test('todo time tem exatamente 5 jogadores e todo presente aparece uma vez', () 
   }
 });
 
-test('em 200 elencos aleatórios nenhuma troca entre dois times diminui a diferença (FR-024)', () => {
+test('em 200 elencos aleatórios nenhuma troca na mesma posição entre dois times diminui a diferença (FR-013 da 003)', () => {
   const rng = createSeededRng(2026);
   for (let round = 0; round < 200; round++) {
     const players = makePlayers(randomRatings(rng, 10 + Math.floor(rng() * 31)));
@@ -124,4 +128,68 @@ test('100 presentes são sorteados em menos de 2 segundos (SC-006)', () => {
   assert.ok(performance.now() - start < 2000);
   assert.equal(result.teams.length, 20);
   assertNoImprovingSwap(result, players);
+});
+
+// Feature 003 - posição
+
+const withPositions = (entries) => entries.map(([rating, position], index) => ({ id: index + 1, rating, position }));
+const randomWithPositions = (rng, count) =>
+  Array.from({ length: count }, () => [1 + Math.floor(rng() * 5), rng() < 0.5 ? 'ATA' : 'DEF']);
+
+function positionCounts(result, players) {
+  const positionById = new Map(players.map((player) => [player.id, player.position]));
+  return result.teams.map((team) => ({
+    ATA: team.filter((id) => positionById.get(id) === 'ATA').length,
+    DEF: team.filter((id) => positionById.get(id) === 'DEF').length,
+  }));
+}
+
+function assertEvenSplit(result, players) {
+  const counts = positionCounts(result, players);
+  for (const position of ['ATA', 'DEF']) {
+    const values = counts.map((count) => count[position]);
+    assert.ok(Math.max(...values) - Math.min(...values) <= 1, `${position} por time: ${values.join(', ')}`);
+  }
+}
+
+test('6 ATA e 4 DEF formam dois times com 3 ATA e 2 DEF (FR-012 da 003)', () => {
+  const players = withPositions([
+    [5, 'ATA'], [4, 'ATA'], [4, 'ATA'], [3, 'ATA'], [2, 'ATA'], [1, 'ATA'],
+    [5, 'DEF'], [3, 'DEF'], [3, 'DEF'], [2, 'DEF'],
+  ]);
+  for (let seed = 1; seed <= 30; seed++) {
+    assert.deepEqual(positionCounts(draw(players, seed), players), [{ ATA: 3, DEF: 2 }, { ATA: 3, DEF: 2 }]);
+  }
+});
+
+test('7 ATA e 8 DEF em 3 times: as quantidades de cada posição diferem em no máximo 1', () => {
+  const players = withPositions([...Array(7).fill([3, 'ATA']), ...Array(8).fill([4, 'DEF'])]);
+  for (let seed = 1; seed <= 30; seed++) assertEvenSplit(draw(players, seed), players);
+});
+
+test('em 200 elencos com posições, a divisão é por igual e nenhuma troca na mesma posição melhora (FR-012 e FR-013 da 003)', () => {
+  const rng = createSeededRng(303);
+  for (let round = 0; round < 200; round++) {
+    const players = withPositions(randomWithPositions(rng, 10 + Math.floor(rng() * 31)));
+    const result = draw(players, round);
+    assertEveryoneOnce(result, players);
+    for (const team of result.teams) assert.equal(team.length, 5);
+    assertEvenSplit(result, players);
+    assertNoImprovingSwap(result, players);
+  }
+});
+test('com 2 DEF e 9 ATA (11 presentes), o banco é sempre um atacante e cada time tem 1 DEF (FR-010 da 003)', () => {
+  const players = withPositions([...Array(9).fill([3, 'ATA']), [4, 'DEF'], [2, 'DEF']]);
+  for (let seed = 1; seed <= 30; seed++) {
+    const result = draw(players, seed);
+    assert.ok(result.bench.every((id) => id <= 9), `semente ${seed}: defensor no banco`);
+    assert.deepEqual(positionCounts(result, players).map((count) => count.DEF), [1, 1]);
+  }
+});
+
+test('com 1 DEF para 2 times, o defensor joga e o outro time fica sem defensor', () => {
+  const players = withPositions([...Array(9).fill([3, 'ATA']), [4, 'DEF']]);
+  for (let seed = 1; seed <= 10; seed++) {
+    assert.deepEqual(positionCounts(draw(players, seed), players).map((count) => count.DEF).sort(), [0, 1]);
+  }
 });

@@ -3,13 +3,14 @@
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH']);
 
 export class ApiError extends Error {
-  constructor({ status, code, message, field, retryAfterSeconds }) {
+  constructor({ status, code, message, field, retryAfterSeconds, missingPositions }) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.field = field;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.missingPositions = missingPositions;
   }
 }
 
@@ -51,6 +52,7 @@ export async function request(method, path, body) {
       message: error.message ?? 'Algo deu errado. Tente de novo.',
       field: error.field,
       retryAfterSeconds: error.retryAfterSeconds,
+      missingPositions: error.missingPositions,
     });
   }
 

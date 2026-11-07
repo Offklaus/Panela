@@ -48,12 +48,12 @@ export function createRosterService({ db, now }) {
     getRosterState,
 
     async addPlayer(organizerId, input) {
-      const { name, rating } = validateNewPlayer(input);
+      const { name, rating, position } = validateNewPlayer(input);
       const nameKey = toNameKey(name);
       return mutate(organizerId, async (tx) => {
         if ((await playerModel.countByOrganizer(tx, organizerId)) >= MAX_PLAYERS) throw rosterFull();
         if (await playerModel.findByNameKey(tx, organizerId, nameKey)) throw nameTaken();
-        await playerModel.insert(tx, { organizerId, name, nameKey, rating, createdAt: now().toISOString() });
+        await playerModel.insert(tx, { organizerId, name, nameKey, rating, position, createdAt: now().toISOString() });
       });
     },
 
@@ -64,6 +64,7 @@ export function createRosterService({ db, now }) {
         if (!(await playerModel.findByIdForOrganizer(tx, organizerId, playerId))) throw notFound();
         if (changes.rating !== undefined) await playerModel.updateRating(tx, organizerId, playerId, changes.rating);
         if (changes.present !== undefined) await playerModel.updatePresent(tx, organizerId, playerId, changes.present);
+        if (changes.position !== undefined) await playerModel.updatePosition(tx, organizerId, playerId, changes.position);
       });
     },
 

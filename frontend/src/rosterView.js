@@ -5,7 +5,7 @@ import { createRoster } from './components/roster/roster.js';
 import { createScreenActions } from './screenActions.js';
 import * as rosterApi from './services/rosterApi.js';
 import { h } from './utils/dom.js';
-import { missingPlayersText, presentCountText } from './utils/format.js';
+import { missingPlayersText, pendingPositionsText, presentCountText } from './utils/format.js';
 import { clearNotice } from './utils/notice.js';
 import { ratingLevels } from './utils/rules.js';
 import { routeAfterDraw } from './utils/screens.js';
@@ -36,7 +36,7 @@ export function rosterView({ mount, store, navigate }) {
   // Depois de mexer no elenco, o aviso de quantos faltam some (FR-009). O sorteio é lido de novo
   // quando a tela de times abre, já com o aviso de lista alterada (FR-031 da 001).
   function afterRosterChange(roster) {
-    store.setState({ roster, shortfall: null });
+    store.setState({ roster, shortfall: null, pendingPositions: null });
   }
 
   async function saveRoster(request) {
@@ -75,6 +75,8 @@ export function rosterView({ mount, store, navigate }) {
     levels,
     onRating: (player, rating) => saveRoster(() => rosterApi.updatePlayer(player.id, { rating })),
     onTogglePresence: (player) => saveRoster(() => rosterApi.setPresence(player.id, !player.present)),
+    onPosition: (player) =>
+      saveRoster(() => rosterApi.updatePlayer(player.id, { position: player.position === 'ATA' ? 'DEF' : 'ATA' })),
     onRemove: (player) => saveRoster(() => rosterApi.removePlayer(player.id)),
     onAllPresent: () => saveRoster(() => rosterApi.setAllPresence(true)),
     onClearPresence: () => saveRoster(() => rosterApi.setAllPresence(false)),
@@ -90,7 +92,11 @@ export function rosterView({ mount, store, navigate }) {
       roster.update(state);
       drawBar.update({
         countText: state.roster ? presentCountText(state.roster.summary.presentCount) : null,
-        shortfallText: Number.isInteger(state.shortfall) ? missingPlayersText(state.shortfall, rules.minTeams) : null,
+        shortfallText: Number.isInteger(state.pendingPositions)
+          ? pendingPositionsText(state.pendingPositions)
+          : Number.isInteger(state.shortfall)
+            ? missingPlayersText(state.shortfall, rules.minTeams)
+            : null,
       });
     });
   const unsubscribe = store.subscribe(render);

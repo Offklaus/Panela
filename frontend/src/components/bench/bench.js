@@ -15,6 +15,7 @@ export function createBench() {
             'li',
             { class: 'bench-chip' },
             player.name,
+            h('span', { class: 'bench-position' }, player.position),
             h(
               'span',
               { class: 'bench-rating' },

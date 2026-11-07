@@ -30,3 +30,19 @@ export function presentCountText(count) {
 export function passwordHintText(minLength) {
   return `Mínimo de ${minLength} caracteres.`;
 }
+
+export function positionCountText(positions) {
+  return `${positions.ATA} ATA · ${positions.DEF} DEF`;
+}
+
+export function pendingPositionsText(count) {
+  return `Defina a posição de ${count === 1 ? '1 presente' : `${count} presentes`} para sortear.`;
+}
+
+const POSITION_WORDS = { ATA: ['atacante', 'atacantes'], DEF: ['defensor', 'defensores'] };
+
+export function positionShortageText({ position, count, teams }) {
+  const [singular, plural] = POSITION_WORDS[position];
+  if (count === 0) return `Nenhum ${singular} para ${teams} times.`;
+  return `Só ${count} ${count === 1 ? singular : plural} para ${teams} times.`;
+}

@@ -1,5 +1,5 @@
 import { h } from '../../utils/dom.js';
-import { starsText } from '../../utils/format.js';
+import { positionShortageText, starsText } from '../../utils/format.js';
 import { hasTeams } from '../../utils/screens.js';
 import { teamCard } from './teamCard.js';
 
@@ -31,6 +31,8 @@ export function createTeams({ levels, footer }) {
     h('strong', {}, 'Sortear de novo'),
     ' para atualizar os times.',
   );
+  // Posição com menos jogadores do que times (FR-017 da 003).
+  const shortage = h('p', { class: 'stale-warning', role: 'status', hidden: true });
   const body = h('div', { class: 'teams-body' });
 
   const el = h(
@@ -43,6 +45,7 @@ export function createTeams({ levels, footer }) {
       subtitle,
     ),
     stale,
+    shortage,
     body,
     footer,
   );
@@ -55,11 +58,14 @@ export function createTeams({ levels, footer }) {
       if (!hasTeams(draw)) {
         subtitle.textContent = '';
         stale.hidden = true;
+        shortage.hidden = true;
         body.replaceChildren();
         return;
       }
       subtitle.textContent = statusLine(draw);
       stale.hidden = !draw.stale;
+      shortage.textContent = draw.positionShortage ? positionShortageText(draw.positionShortage) : '';
+      shortage.hidden = !draw.positionShortage;
       body.replaceChildren(...content(draw, levels));
     },
   };

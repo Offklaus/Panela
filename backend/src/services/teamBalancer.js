@@ -1,28 +1,48 @@
 import { randomInt, shuffle } from '../utils/random.js';
 
-// Sorteio puro (research.md §9). Recebe [{ id, rating }] e devolve ids por time e no banco.
+// Sorteio puro (research.md §9 da 001; §4 a §6 da 003). Recebe [{ id, rating, position }] e devolve
+// ids por time e no banco.
 export function balanceTeams(players, { teamSize, minTeams, rng }) {
   const teamCount = Math.floor(players.length / teamSize);
   if (teamCount < minTeams) {
     return { teams: [], bench: players.map((player) => player.id) };
   }
 
-  // 1. Banco: os primeiros de um embaralhamento uniforme; cada presente tem a mesma chance (FR-021).
+  // 1. Banco: segue um embaralhamento uniforme, mas pula quem deixaria a própria posição com menos
+  //    jogadores do que times (FR-010 e FR-011 da 003). Sem posição no limite, cada presente tem a
+  //    mesma chance, como antes (FR-021 da 001).
   const shuffled = shuffle(players, rng);
   const benchSize = players.length - teamCount * teamSize;
-  const bench = shuffled.slice(0, benchSize);
-
-  // 2. Divisão gulosa: maior nível primeiro (a ordenação estável mantém os empates em ordem aleatória),
-  //    cada um para o time incompleto de menor total.
-  const playing = shuffled.slice(benchSize).sort((a, b) => b.rating - a.rating);
-  const teams = Array.from({ length: teamCount }, () => ({ players: [], total: 0 }));
-  for (const player of playing) {
-    const team = pickLightestOpenTeam(teams, teamSize, rng);
-    team.players.push(player);
-    team.total += player.rating;
+  const benchQuota = new Map();
+  for (const player of players) benchQuota.set(player.position, (benchQuota.get(player.position) ?? 0) + 1);
+  for (const [position, count] of benchQuota) benchQuota.set(position, Math.max(0, count - teamCount));
+  const bench = [];
+  const playing = [];
+  for (const player of shuffled) {
+    if (bench.length < benchSize && benchQuota.get(player.position) > 0) {
+      bench.push(player);
+      benchQuota.set(player.position, benchQuota.get(player.position) - 1);
+    } else {
+      playing.push(player);
+    }
   }
 
-  // 3. Refinamento: troca jogadores enquanto alguma troca diminuir a diferença entre dois times (FR-024).
+  // 2. Vagas de cada posição em cada time: atacantes e defensores por igual (FR-012 da 003).
+  const teams = Array.from({ length: teamCount }, () => ({ players: [], total: 0, slots: {} }));
+  assignPositionSlots(teams, playing, rng);
+
+  // 3. Divisão gulosa: maior nível primeiro (a ordenação estável mantém os empates em ordem aleatória),
+  //    cada um para o time de menor total que ainda tem vaga na posição dele.
+  playing.sort((a, b) => b.rating - a.rating);
+  for (const player of playing) {
+    const team = pickLightestOpenTeam(teams, player.position, rng);
+    team.players.push(player);
+    team.total += player.rating;
+    team.slots[player.position] -= 1;
+  }
+
+  // 4. Refinamento: troca jogadores da mesma posição enquanto alguma troca diminuir a diferença entre
+  //    dois times (FR-013 da 003).
   refine(teams, rng);
 
   return {
@@ -31,10 +51,31 @@ export function balanceTeams(players, { teamSize, minTeams, rng }) {
   };
 }
 
-function pickLightestOpenTeam(teams, teamSize, rng) {
+// Cada posição recebe ⌊quantidade ÷ times⌋ vagas por time e uma a mais em (quantidade mod times) times.
+// Os times das vagas extras são sorteados, e a posição seguinte continua de onde a anterior parou: como
+// ATA + DEF = times × tamanho, cada time fica com exatamente uma vaga extra ou nenhuma.
+function assignPositionSlots(teams, playing, rng) {
+  const counts = new Map();
+  for (const player of playing) counts.set(player.position, (counts.get(player.position) ?? 0) + 1);
+
+  const order = shuffle(
+    teams.map((_, index) => index),
+    rng,
+  );
+  let cursor = 0;
+  for (const [position, count] of counts) {
+    for (const team of teams) team.slots[position] = Math.floor(count / teams.length);
+    for (let extra = count % teams.length; extra > 0; extra--) {
+      teams[order[cursor % teams.length]].slots[position] += 1;
+      cursor += 1;
+    }
+  }
+}
+
+function pickLightestOpenTeam(teams, position, rng) {
   let candidates = [];
   for (const team of teams) {
-    if (team.players.length >= teamSize) continue;
+    if (!(team.slots[position] > 0)) continue;
     const best = candidates[0];
     if (
       !best ||
@@ -62,6 +103,7 @@ function refine(teams, rng) {
   }
 }
 
+// Só troca jogadores da mesma posição, para não desfazer a divisão do passo 2.
 function swapBest(x, y, rng) {
   const difference = x.total - y.total;
   if (difference === 0) return false;
@@ -70,6 +112,7 @@ function swapBest(x, y, rng) {
   let options = [];
   for (let a = 0; a < x.players.length; a++) {
     for (let b = 0; b < y.players.length; b++) {
+      if (x.players[a].position !== y.players[b].position) continue;
       const gap = Math.abs(difference - 2 * (x.players[a].rating - y.players[b].rating));
       if (gap < bestGap) {
         bestGap = gap;

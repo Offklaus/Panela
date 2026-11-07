@@ -15,18 +15,18 @@ beforeEach(async () => {
   organizer = await insertOrganizer(db);
 });
 
-const add = (name, rating = 3, organizerId = organizer.id) => roster.addPlayer(organizerId, { name, rating });
+const add = (name, rating = 3, organizerId = organizer.id) => roster.addPlayer(organizerId, { name, rating, position: 'ATA' });
 const withoutIds = (players) => players.map(({ id, ...rest }) => rest);
 
 // US2 - elenco
 
 test('addPlayer tira espaços das pontas e o jogador entra presente com o nível pedido', async () => {
   const state = await add('  Pedrinho  ', 4);
-  assert.deepEqual(withoutIds(state.players), [{ name: 'Pedrinho', rating: 4, present: true }]);
+  assert.deepEqual(withoutIds(state.players), [{ name: 'Pedrinho', rating: 4, present: true, position: 'ATA' }]);
 });
 
 test('addPlayer usa 3 estrelas quando o nível não vem', async () => {
-  const state = await roster.addPlayer(organizer.id, { name: 'Sem nível' });
+  const state = await roster.addPlayer(organizer.id, { name: 'Sem nível', position: 'ATA' });
   assert.equal(state.players[0].rating, 3);
 });
 
@@ -162,6 +162,7 @@ test('com sorteio salvo, toda alteração no elenco liga drawStale', async () =>
     remover: () => roster.removePlayer(organizer.id, players[11].id),
     nível: () => roster.updatePlayer(organizer.id, players[0].id, { rating: 1 }),
     presença: () => roster.updatePlayer(organizer.id, players[1].id, { present: false }),
+    posição: () => roster.updatePlayer(organizer.id, players[2].id, { position: 'DEF' }),
     'todos presentes': () => roster.setAllPresent(organizer.id, { present: true }),
     limpar: () => roster.setAllPresent(organizer.id, { present: false }),
   };
@@ -181,4 +182,35 @@ test('updatePlayer sem nível nem presença, ou com presença não booleana, é 
   await assert.rejects(roster.updatePlayer(organizer.id, player.id, {}), expectCode('VALIDATION_ERROR'));
   await assert.rejects(roster.updatePlayer(organizer.id, player.id, { present: 'sim' }), expectCode('VALIDATION_ERROR'));
   await assert.rejects(roster.setAllPresent(organizer.id, { present: 1 }), expectCode('VALIDATION_ERROR'));
+});
+
+// Feature 003 - posição
+
+const positionError = (error) =>
+  error.code === 'VALIDATION_ERROR' && error.field === 'position' && error.message === 'Escolha a posição.';
+
+test('addPlayer exige a posição ATA ou DEF (FR-002 da 003)', async () => {
+  await assert.rejects(roster.addPlayer(organizer.id, { name: 'Sem posição', rating: 3 }), positionError);
+  await assert.rejects(roster.addPlayer(organizer.id, { name: 'Goleiro', rating: 3, position: 'GOL' }), positionError);
+  assert.equal((await roster.getRosterState(organizer.id)).players.length, 0);
+});
+
+test('addPlayer guarda a posição escolhida', async () => {
+  const state = await roster.addPlayer(organizer.id, { name: 'Zagueiro', rating: 4, position: 'DEF' });
+  assert.equal(state.players[0].position, 'DEF');
+});
+
+test('updatePlayer troca a posição e recusa posição inválida ou vazia (FR-005 da 003)', async () => {
+  const [player] = (await add('A')).players;
+  assert.equal((await roster.updatePlayer(organizer.id, player.id, { position: 'DEF' })).players[0].position, 'DEF');
+  await assert.rejects(roster.updatePlayer(organizer.id, player.id, { position: 'GOL' }), expectCode('VALIDATION_ERROR'));
+  await assert.rejects(roster.updatePlayer(organizer.id, player.id, { position: null }), expectCode('VALIDATION_ERROR'));
+});
+
+test('jogador cadastrado antes da feature 003 aparece sem posição', async () => {
+  await db.run(
+    "INSERT INTO players (organizer_id, name, name_key, rating, created_at) VALUES ($1, 'Antigo', 'antigo', 3, now())",
+    [organizer.id],
+  );
+  assert.equal((await roster.getRosterState(organizer.id)).players[0].position, null);
 });

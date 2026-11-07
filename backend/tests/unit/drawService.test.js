@@ -22,7 +22,7 @@ beforeEach(async () => {
 async function addPlayers(ratings) {
   let state;
   for (const [index, rating] of ratings.entries()) {
-    state = await roster.addPlayer(organizer.id, { name: `Jogador ${String(index + 1).padStart(2, '0')}`, rating });
+    state = await roster.addPlayer(organizer.id, { name: `Jogador ${String(index + 1).padStart(2, '0')}`, rating, position: index % 2 === 0 ? 'ATA' : 'DEF' });
   }
   return state.players;
 }
@@ -117,4 +117,55 @@ test('alterar o elenco deixa o sorteio desatualizado e um novo sorteio zera o av
   assert.equal((await draws.getDraw(organizer.id)).stale, true);
 
   assert.equal((await draws.createDraw(organizer.id)).stale, false);
+});
+
+// Feature 003 - posição
+
+test('o sorteio traz a posição dos jogadores, as contagens por time e positionShortage nulo', async () => {
+  await addPlayers([5, 4, 4, 3, 3, 3, 2, 4, 3, 2, 5]);
+  const draw = await draws.createDraw(organizer.id);
+  for (const team of draw.teams) {
+    assert.equal(team.positions.ATA + team.positions.DEF, 5);
+    assert.ok(team.players.every((player) => player.position === 'ATA' || player.position === 'DEF'));
+  }
+  assert.ok(draw.bench.every((player) => player.position === 'ATA' || player.position === 'DEF'));
+  assert.equal(draw.positionShortage, null);
+});
+const insertWithoutPosition = (name) =>
+  db.run('INSERT INTO players (organizer_id, name, name_key, rating, created_at) VALUES ($1, $2, $3, 3, now())', [
+    organizer.id,
+    name,
+    name.toLowerCase(),
+  ]);
+
+test('com 10 ou mais presentes e algum sem posição, o sorteio é bloqueado e o anterior continua (FR-007 da 003)', async () => {
+  await addPlayers(Array(11).fill(3));
+  const previous = await draws.createDraw(organizer.id);
+  await insertWithoutPosition('Antigo 1');
+  await insertWithoutPosition('Antigo 2');
+  await assert.rejects(
+    draws.createDraw(organizer.id),
+    (error) =>
+      error.status === 409 &&
+      error.code === 'POSITIONS_MISSING' &&
+      error.message === 'Defina a posição de 2 presentes para sortear.' &&
+      error.extra.missingPositions === 2,
+  );
+  assert.deepEqual(await draws.getDraw(organizer.id), previous);
+});
+
+test('com menos de 10 presentes, a posição não é cobrada e o sorteio sai sem times (FR-009 da 003)', async () => {
+  await addPlayers(Array(8).fill(3));
+  await insertWithoutPosition('Antigo');
+  const draw = await draws.createDraw(organizer.id);
+  assert.deepEqual(draw.teams, []);
+  assert.equal(draw.missingPlayers, 1);
+});
+
+test('com 9 ATA e 1 DEF, positionShortage aponta o defensor em falta (FR-017 da 003)', async () => {
+  for (let i = 1; i <= 10; i++) {
+    await roster.addPlayer(organizer.id, { name: `J${i}`, rating: 3, position: i === 1 ? 'DEF' : 'ATA' });
+  }
+  const draw = await draws.createDraw(organizer.id);
+  assert.deepEqual(draw.positionShortage, { position: 'DEF', count: 1, teams: 2 });
 });

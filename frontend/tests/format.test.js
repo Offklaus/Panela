@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDecimal, initials, missingPlayersText, passwordHintText, presentCountText, starsText } from '../src/utils/format.js';
+import {
+  formatDecimal,
+  initials,
+  missingPlayersText,
+  passwordHintText,
+  pendingPositionsText,
+  positionCountText,
+  positionShortageText,
+  presentCountText,
+  starsText,
+} from '../src/utils/format.js';
 
 test('formatDecimal usa uma casa e vírgula', () => {
   assert.equal(formatDecimal(3.4), '3,4');
@@ -41,4 +51,19 @@ test('presentCountText no singular e no plural', () => {
 
 test('passwordHintText usa o mínimo informado', () => {
   assert.equal(passwordHintText(10), 'Mínimo de 10 caracteres.');
+});
+
+test('positionCountText mostra as quantidades de cada posição', () => {
+  assert.equal(positionCountText({ ATA: 3, DEF: 2 }), '3 ATA · 2 DEF');
+});
+
+test('pendingPositionsText no singular e no plural', () => {
+  assert.equal(pendingPositionsText(1), 'Defina a posição de 1 presente para sortear.');
+  assert.equal(pendingPositionsText(2), 'Defina a posição de 2 presentes para sortear.');
+});
+
+test('positionShortageText diz quantos jogadores da posição há para os times', () => {
+  assert.equal(positionShortageText({ position: 'DEF', count: 0, teams: 2 }), 'Nenhum defensor para 2 times.');
+  assert.equal(positionShortageText({ position: 'DEF', count: 1, teams: 2 }), 'Só 1 defensor para 2 times.');
+  assert.equal(positionShortageText({ position: 'ATA', count: 2, teams: 3 }), 'Só 2 atacantes para 3 times.');
 });

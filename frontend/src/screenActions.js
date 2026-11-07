@@ -6,7 +6,7 @@ import { hasTeams } from './utils/screens.js';
 // O que as telas Elenco e Times fazem igual: sessão vencida, sair e sortear.
 export function createScreenActions({ store, navigate }) {
   function signOut() {
-    store.setState({ organizer: null, roster: null, draw: null, shortfall: null });
+    store.setState({ organizer: null, roster: null, draw: null, shortfall: null, pendingPositions: null });
     navigate('/entrar');
   }
 
@@ -36,10 +36,15 @@ export function createScreenActions({ store, navigate }) {
   async function drawTeams() {
     try {
       const { draw } = await drawApi.createDraw();
-      store.setState({ draw, shortfall: hasTeams(draw) ? null : draw.missingPlayers });
+      store.setState({ draw, shortfall: hasTeams(draw) ? null : draw.missingPlayers, pendingPositions: null });
       clearNotice();
       return draw;
     } catch (error) {
+      // Presentes sem posição: o aviso fica no Elenco, acima do botão (FR-007 da 003).
+      if (error.code === 'POSITIONS_MISSING') {
+        store.setState({ pendingPositions: error.missingPositions, shortfall: null });
+        return null;
+      }
       handleError(error);
       return null;
     }

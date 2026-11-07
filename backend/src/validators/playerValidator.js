@@ -1,4 +1,4 @@
-import { DEFAULT_RATING, NAME_MAX_LENGTH, RATING_MAX, RATING_MIN } from '../config/domain.js';
+import { DEFAULT_RATING, NAME_MAX_LENGTH, POSITIONS, RATING_MAX, RATING_MIN } from '../config/domain.js';
 import { AppError } from '../utils/AppError.js';
 
 function invalid(message, field) {
@@ -31,10 +31,17 @@ export function validatePresent(value) {
   return value;
 }
 
+// ATA ou DEF; "sem posição" só existe para jogadores cadastrados antes da feature 003.
+export function validatePosition(value) {
+  if (!POSITIONS.includes(value)) throw invalid('Escolha a posição.', 'position');
+  return value;
+}
+
 export function validateNewPlayer(body) {
   return {
     name: validateName(body?.name),
     rating: body?.rating === undefined ? DEFAULT_RATING : validateRating(body.rating),
+    position: validatePosition(body?.position),
   };
 }
 
@@ -42,7 +49,8 @@ export function validatePlayerUpdate(body) {
   const changes = {};
   if (body?.rating !== undefined) changes.rating = validateRating(body.rating);
   if (body?.present !== undefined) changes.present = validatePresent(body.present);
-  if (Object.keys(changes).length === 0) throw invalid('Envie o nível ou a presença do jogador.');
+  if (body?.position !== undefined) changes.position = validatePosition(body.position);
+  if (Object.keys(changes).length === 0) throw invalid('Envie o nível, a presença ou a posição do jogador.');
   return changes;
 }
 

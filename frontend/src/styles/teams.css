@@ -175,6 +175,7 @@
 }
 
 .team-player-name {
+  flex: 1 1 auto;
   min-width: 0;
   font-weight: 600;
   font-size: 15px;
@@ -238,4 +239,42 @@
 
 .bench-rating {
   color: var(--color-accent);
+}
+
+/* Posições nos times e no banco (FR-015 e FR-016 da 003) */
+.team-positions {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-dark-text-muted);
+}
+
+.team-position {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-dark-line-strong);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.team-position-ata {
+  background: var(--color-dark-line);
+  color: var(--color-ground);
+}
+
+.team-position-def {
+  background: transparent;
+  color: var(--color-dark-text-muted);
+}
+
+.bench-position {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--color-dark-text-muted);
 }

@@ -24,6 +24,7 @@ Ficam só em `backend/src/config/domain.js` (Princípio III). A tela recebe as q
 | `LOGIN_MAX_FAILURES` / `LOGIN_LOCK_MINUTES` | 5 / 15 | FR-003 |
 | `RESET_TOKEN_MINUTES` / `RESET_MAX_PER_HOUR` | 60 / 3 | FR-006, research §7 |
 | `VESTS` | `green, white, orange, blue, pink, purple, yellow, cyan` | FR-026 |
+| `POSITIONS` | `ATA, DEF` | feature 003 |
 
 ## Entidades
 
@@ -78,6 +79,7 @@ Sessão vencida é tratada como inexistente e apagada na leitura.
 | `name_key` | TEXT NOT NULL | `name` em minúsculas (pt-BR); `UNIQUE(organizer_id, name_key)` (FR-011) |
 | `rating` | SMALLINT NOT NULL | `CHECK (rating BETWEEN 1 AND 5)` |
 | `present` | BOOLEAN NOT NULL DEFAULT TRUE | Jogador novo entra presente (FR-012) |
+| `position` | TEXT NULL, `CHECK (position IN ('ATA', 'DEF'))` | Feature 003: obrigatória no cadastro; `NULL` só para jogadores antigos (migração `002_player_position.sql`) |
 | `created_at` | TIMESTAMPTZ NOT NULL | |
 
 O limite de 100 jogadores por organizador é conferido no serviço, dentro da mesma transação do

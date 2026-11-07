@@ -19,7 +19,7 @@ import { h } from './utils/dom.js';
 import { mountNotice, showNotice } from './utils/notice.js';
 
 const AUTH_ROUTES = new Set(['/entrar', '/criar-conta', '/esqueci-senha', '/nova-senha']);
-const store = createStore({ organizer: null, roster: null, draw: null, rules: null, shortfall: null });
+const store = createStore({ organizer: null, roster: null, draw: null, rules: null, shortfall: null, pendingPositions: null });
 
 // Sem as regras não dá para montar a tela, e o frontend não guarda cópia delas.
 function showLoadError(message) {

@@ -39,6 +39,7 @@
 | `EMAIL_TAKEN` | 409 | E-mail já tem conta (FR-001) |
 | `NAME_TAKEN` | 409 | Nome repetido no elenco (FR-011) |
 | `ROSTER_FULL` | 409 | Elenco já tem 100 jogadores (FR-011) |
+| `POSITIONS_MISSING` | 409 | Sorteio com 10 ou mais presentes e algum sem posição; inclui `missingPositions` (feature 003) |
 | `UNSUPPORTED_MEDIA_TYPE` | 415 | Falta `Content-Type: application/json` |
 | `LOGIN_LOCKED` | 429 | 5 falhas seguidas; inclui `retryAfterSeconds` (FR-003) |
 | `INTERNAL_ERROR` | 500 | Falha inesperada; mensagem genérica |
@@ -49,14 +50,16 @@
 Rules       { ratingMin: number, ratingMax: number, defaultRating: number,
               passwordMinLength: number, minTeams: number }
 Organizer   { id: number, email: string }
-Player      { id: number, name: string, rating: 1..5, present: boolean }
+Player      { id: number, name: string, rating: 1..5, present: boolean, position: "ATA" | "DEF" | null }
 Summary     { presentCount: number, possibleTeams: number, averageRating: number | null }
 RosterState { players: Player[], summary: Summary, drawStale: boolean }
-PlayerRef   { id: number, name: string, rating: 1..5 }
-Team        { letter: "A".."T", vest: VestKey, players: PlayerRef[], total: number, average: number }
+PlayerRef   { id: number, name: string, rating: 1..5, position: "ATA" | "DEF" }
+Team        { letter: "A".."T", vest: VestKey, players: PlayerRef[], total: number, average: number,
+              positions: { ATA: number, DEF: number } }
 VestKey     "green" | "white" | "orange" | "blue" | "pink" | "purple" | "yellow" | "cyan"
 Draw        { createdAt: string, stale: boolean, teamSize: 5, teams: Team[], bench: PlayerRef[],
-              difference: number | null, missingPlayers: number }
+              difference: number | null, missingPlayers: number,
+              positionShortage: null | { position: "ATA" | "DEF", count: number, teams: number } }
 ```
 
 - `RosterState.players` vem na ordem de cadastro (FR-015).
@@ -64,6 +67,9 @@ Draw        { createdAt: string, stale: boolean, teamSize: 5, teams: Team[], ben
 - `averageRating` e `Team.average` vêm sem arredondar; o frontend mostra uma casa com vírgula.
 - `Draw.missingPlayers` é 0 quando há times; com menos de 10 presentes, `teams` é `[]` e `bench`
   traz todos os presentes (FR-022).
+- Posição (feature 003): `position` é obrigatória no cadastro (ATA ou DEF) e `null` só para jogadores
+  antigos; o sorteio divide atacantes e defensores por igual e `positionShortage` indica a posição com
+  menos jogadores do que times. Detalhes em [003/contracts/api.md](../../003-player-positions/contracts/api.md).
 
 ## Regras
 
@@ -117,8 +123,8 @@ Toda alteração devolve o `RosterState` completo e liga `drawStale` se já houv
 | Método e rota | Corpo | Sucesso | Erros |
 |---------------|-------|---------|-------|
 | `GET /api/roster` | — | `200 RosterState` | — |
-| `POST /api/players` | `{ name, rating }` | `201 RosterState` | `VALIDATION_ERROR`, `NAME_TAKEN`, `ROSTER_FULL` |
-| `PATCH /api/players/:id` | `{ rating? , present? }` (ao menos um) | `200 RosterState` | `VALIDATION_ERROR`, `NOT_FOUND` |
+| `POST /api/players` | `{ name, rating, position }` | `201 RosterState` | `VALIDATION_ERROR`, `NAME_TAKEN`, `ROSTER_FULL` |
+| `PATCH /api/players/:id` | `{ rating?, present?, position? }` (ao menos um) | `200 RosterState` | `VALIDATION_ERROR`, `NOT_FOUND` |
 | `DELETE /api/players/:id` | — | `200 RosterState` | `NOT_FOUND` |
 | `PUT /api/players/presence` | `{ present: boolean }` | `200 RosterState` | `VALIDATION_ERROR` |
 
@@ -140,7 +146,7 @@ Exemplo de `RosterState`:
 | Método e rota | Corpo | Sucesso | Erros |
 |---------------|-------|---------|-------|
 | `GET /api/draw` | — | `200 { draw: Draw \| null }` | — |
-| `POST /api/draw` | `{}` | `201 { draw: Draw }`; substitui o anterior e zera `stale` | — |
+| `POST /api/draw` | `{}` | `201 { draw: Draw }`; substitui o anterior e zera `stale` | `POSITIONS_MISSING` |
 
 Exemplo de `Draw` com 11 presentes:
 

@@ -16,7 +16,7 @@ async function organizerWithPlayers(count) {
   counter += 1;
   await client.post('/api/auth/signup', { body: { email: `sorteio${counter}@exemplo.com`, password: 'senha-boa-123' } });
   for (let i = 1; i <= count; i++) {
-    const res = await client.post('/api/players', { body: { name: `Jogador ${i}`, rating: (i % 5) + 1 } });
+    const res = await client.post('/api/players', { body: { name: `Jogador ${i}`, rating: (i % 5) + 1, position: i % 2 === 0 ? 'ATA' : 'DEF' } });
     assert.equal(res.status, 201);
   }
   return client;
@@ -87,4 +87,29 @@ test('mudar a presença deixa o sorteio desatualizado com os mesmos times; sorte
   const fresh = (await client.post('/api/draw', { body: {} })).body.draw;
   assert.equal(fresh.stale, false);
   assert.equal((await client.get('/api/roster')).body.drawStale, false);
+});
+
+// Feature 003 - posição
+
+test('POST /api/draw devolve times com contagem de posições e jogadores com posição', async () => {
+  const client = await organizerWithPlayers(10);
+  const { status, body } = await client.post('/api/draw', { body: {} });
+  assert.equal(status, 201);
+  assert.deepEqual(body.draw.teams.map((team) => team.positions.ATA).sort(), [2, 3]);
+  for (const team of body.draw.teams) {
+    assert.equal(team.positions.ATA + team.positions.DEF, 5);
+    assert.ok(team.players.every((player) => ['ATA', 'DEF'].includes(player.position)));
+  }
+});
+test('POST /api/draw com presente sem posição responde 409 POSITIONS_MISSING', async () => {
+  const client = await organizerWithPlayers(10);
+  const { body } = await client.get('/api/auth/me');
+  await server.db.run(
+    "INSERT INTO players (organizer_id, name, name_key, rating, created_at) VALUES ($1, 'Antigo', 'antigo', 3, now())",
+    [body.organizer.id],
+  );
+  const res = await client.post('/api/draw', { body: {} });
+  assert.equal(res.status, 409);
+  assert.equal(res.body.error.code, 'POSITIONS_MISSING');
+  assert.equal(res.body.error.missingPositions, 1);
 });
