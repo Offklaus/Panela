@@ -39,6 +39,8 @@
 | `EMAIL_TAKEN` | 409 | E-mail já tem conta (FR-001) |
 | `NAME_TAKEN` | 409 | Nome repetido no elenco (FR-011) |
 | `ROSTER_FULL` | 409 | Elenco já tem 100 jogadores (FR-011) |
+| `CLUB_EXISTS` | 409 | A conta já tem time (feature 005) |
+| `CLUB_REQUIRED` | 409 | A conta não tem time e pediu para mudar o elenco ou sortear (feature 005) |
 | `POSITIONS_MISSING` | 409 | Sorteio com 10 ou mais presentes e algum sem posição; inclui `missingPositions` (feature 003) |
 | `UNSUPPORTED_MEDIA_TYPE` | 415 | Falta `Content-Type: application/json` |
 | `LOGIN_LOCKED` | 429 | 5 falhas seguidas; inclui `retryAfterSeconds` (FR-003) |
@@ -48,7 +50,9 @@
 
 ```text
 Rules       { ratingMin: number, ratingMax: number, defaultRating: number,
-              passwordMinLength: number, minTeams: number }
+              passwordMinLength: number, minTeams: number, clubIcons: ClubIcon[] }
+ClubIcon    "ball" | "shield" | "bolt" | "star" | "crown" | "flame" | "trophy" | "target"
+Club        { name: string, icon: ClubIcon }
 Organizer   { id: number, email: string }
 Player      { id: number, name: string, rating: 1..5, present: boolean, position: "ATA" | "DEF" | null }
 Summary     { presentCount: number, possibleTeams: number, averageRating: number | null }
@@ -87,7 +91,8 @@ abrir e não guarda cópia deles no código (constituição, Princípio II).
     "ratingMax": 5,
     "defaultRating": 3,
     "passwordMinLength": 8,
-    "minTeams": 2
+    "minTeams": 2,
+    "clubIcons": ["ball", "shield", "bolt", "star", "crown", "flame", "trophy", "target"]
   }
 }
 ```
@@ -115,6 +120,18 @@ Exemplo de `LOGIN_LOCKED`:
 }
 ```
 
+## Time 🔒
+
+Um time por conta, com nome e ícone (feature 005). Os jogadores continuam ligados à conta; o
+elenco do time é o elenco da conta. Sem time, o elenco vem vazio, o sorteio vem `null` e as rotas que
+mudam o elenco ou sorteiam respondem `CLUB_REQUIRED`. Detalhes em
+[005/contracts/api.md](../../005-myteam-club/contracts/api.md).
+
+| Método e rota | Corpo | Sucesso | Erros |
+|---------------|-------|---------|-------|
+| `GET /api/club` | — | `200 { club: Club \| null }` | — |
+| `POST /api/club` | `{ name, icon? }` | `201 { club: Club }` | `VALIDATION_ERROR`, `CLUB_EXISTS` |
+
 ## Elenco e presença 🔒
 
 Toda alteração devolve o `RosterState` completo e liga `drawStale` se já houver sorteio
@@ -123,10 +140,10 @@ Toda alteração devolve o `RosterState` completo e liga `drawStale` se já houv
 | Método e rota | Corpo | Sucesso | Erros |
 |---------------|-------|---------|-------|
 | `GET /api/roster` | — | `200 RosterState` | — |
-| `POST /api/players` | `{ name, rating, position }` | `201 RosterState` | `VALIDATION_ERROR`, `NAME_TAKEN`, `ROSTER_FULL` |
-| `PATCH /api/players/:id` | `{ rating?, present?, position? }` (ao menos um) | `200 RosterState` | `VALIDATION_ERROR`, `NOT_FOUND` |
-| `DELETE /api/players/:id` | — | `200 RosterState` | `NOT_FOUND` |
-| `PUT /api/players/presence` | `{ present: boolean }` | `200 RosterState` | `VALIDATION_ERROR` |
+| `POST /api/players` | `{ name, rating, position }` | `201 RosterState` | `VALIDATION_ERROR`, `CLUB_REQUIRED`, `NAME_TAKEN`, `ROSTER_FULL` |
+| `PATCH /api/players/:id` | `{ rating?, present?, position? }` (ao menos um) | `200 RosterState` | `VALIDATION_ERROR`, `CLUB_REQUIRED`, `NOT_FOUND` |
+| `DELETE /api/players/:id` | — | `200 RosterState` | `CLUB_REQUIRED`, `NOT_FOUND` |
+| `PUT /api/players/presence` | `{ present: boolean }` | `200 RosterState` | `VALIDATION_ERROR`, `CLUB_REQUIRED` |
 
 Exemplo de `RosterState`:
 
@@ -146,7 +163,7 @@ Exemplo de `RosterState`:
 | Método e rota | Corpo | Sucesso | Erros |
 |---------------|-------|---------|-------|
 | `GET /api/draw` | — | `200 { draw: Draw \| null }` | — |
-| `POST /api/draw` | `{}` | `201 { draw: Draw }`; substitui o anterior e zera `stale` | `POSITIONS_MISSING` |
+| `POST /api/draw` | `{}` | `201 { draw: Draw }`; substitui o anterior e zera `stale` | `CLUB_REQUIRED`, `POSITIONS_MISSING` |
 
 Exemplo de `Draw` com 11 presentes:
 

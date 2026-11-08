@@ -16,6 +16,8 @@ async function newOrganizer() {
   counter += 1;
   const res = await client.post('/api/auth/signup', { body: { email: `org${counter}@exemplo.com`, password: 'senha-boa-123' } });
   assert.equal(res.status, 201);
+  // O elenco é do time: sem ele, as rotas recusam mudanças (FR-018 da 005).
+  assert.equal((await client.post('/api/club', { body: { name: 'Os Boleiros' } })).status, 201);
   return client;
 }
 

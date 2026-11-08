@@ -1,9 +1,10 @@
 import pg from 'pg';
 import { createDatabase } from '../../src/database/connection.js';
 import { migrate } from '../../src/database/migrate.js';
+import * as clubModel from '../../src/models/clubModel.js';
 import * as organizerModel from '../../src/models/organizerModel.js';
 
-const TABLES = 'organizers, sessions, password_resets, login_throttle, players, draws';
+const TABLES = 'organizers, sessions, password_resets, login_throttle, players, draws, clubs';
 
 async function createDatabaseForThisProcess() {
   const adminUrl = process.env.TEST_DATABASE_URL;
@@ -52,6 +53,18 @@ export function insertOrganizer(db, email = 'org@exemplo.com') {
     passwordHash: 'scrypt$1$1$1$c2FsdA==$aGFzaA==',
     createdAt: '2026-11-01T12:00:00.000Z',
   });
+}
+
+// Time direto no banco: sem ele, o elenco e o sorteio ficam bloqueados (FR-018 da 005).
+export function insertClub(db, organizerId, name = 'Os Boleiros') {
+  return clubModel.insert(db, { organizerId, name, icon: 'ball', createdAt: '2026-11-01T12:00:00.000Z' });
+}
+
+// Organizador que já tem time, para os testes do elenco e do sorteio.
+export async function insertOrganizerWithClub(db, email) {
+  const organizer = await insertOrganizer(db, email);
+  await insertClub(db, organizer.id);
+  return organizer;
 }
 
 export function expectCode(code) {

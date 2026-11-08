@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createDrawService } from '../../src/services/drawService.js';
 import { createRosterService } from '../../src/services/rosterService.js';
 import { createSeededRng } from '../../src/utils/random.js';
-import { createClock, createTestDb, insertOrganizer } from './testDb.js';
+import { createClock, createTestDb, insertClub, insertOrganizerWithClub } from './testDb.js';
 
 let db;
 let clock;
@@ -16,7 +16,7 @@ beforeEach(async () => {
   clock = createClock();
   roster = createRosterService({ db, now: clock.now });
   draws = createDrawService({ db, rng: createSeededRng(7), now: clock.now });
-  organizer = await insertOrganizer(db);
+  organizer = await insertOrganizerWithClub(db);
 });
 
 async function addPlayers(ratings) {
@@ -160,6 +160,24 @@ test('com menos de 10 presentes, a posição não é cobrada e o sorteio sai sem
   const draw = await draws.createDraw(organizer.id);
   assert.deepEqual(draw.teams, []);
   assert.equal(draw.missingPlayers, 1);
+});
+
+// Feature 005 - sorteio só com time
+
+test('sem time, getDraw devolve null, createDraw é recusado e o sorteio antigo volta com o time (FR-018 da 005)', async () => {
+  await addPlayers(Array(11).fill(3));
+  const previous = await draws.createDraw(organizer.id);
+  // Como uma conta da feature 004: jogadores e sorteio guardados, sem time.
+  await db.run('DELETE FROM clubs WHERE organizer_id = $1', [organizer.id]);
+
+  assert.equal(await draws.getDraw(organizer.id), null);
+  await assert.rejects(
+    draws.createDraw(organizer.id),
+    (error) => error.status === 409 && error.code === 'CLUB_REQUIRED' && error.message === 'Crie o seu time no MyTeam primeiro.',
+  );
+
+  await insertClub(db, organizer.id);
+  assert.deepEqual(await draws.getDraw(organizer.id), previous);
 });
 
 test('com 9 ATA e 1 DEF, positionShortage aponta o defensor em falta (FR-017 da 003)', async () => {

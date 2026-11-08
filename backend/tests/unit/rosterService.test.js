@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createDrawService } from '../../src/services/drawService.js';
 import { createRosterService } from '../../src/services/rosterService.js';
 import { createSeededRng } from '../../src/utils/random.js';
-import { createClock, createTestDb, expectCode, insertOrganizer } from './testDb.js';
+import { createClock, createTestDb, expectCode, insertClub, insertOrganizer, insertOrganizerWithClub } from './testDb.js';
 
 let db;
 let roster;
@@ -12,7 +12,7 @@ let organizer;
 beforeEach(async () => {
   db = await createTestDb();
   roster = createRosterService({ db, now: createClock().now });
-  organizer = await insertOrganizer(db);
+  organizer = await insertOrganizerWithClub(db);
 });
 
 const add = (name, rating = 3, organizerId = organizer.id) => roster.addPlayer(organizerId, { name, rating, position: 'ATA' });
@@ -43,7 +43,7 @@ test('addPlayer recusa nome repetido ignorando maiúsculas, minúsculas e espaç
 });
 
 test('o mesmo nome pode existir no elenco de outro organizador', async () => {
-  const other = await insertOrganizer(db, 'outro@exemplo.com');
+  const other = await insertOrganizerWithClub(db, 'outro@exemplo.com');
   await add('Pedrinho');
   assert.equal((await add('Pedrinho', 3, other.id)).players.length, 1);
 });
@@ -97,7 +97,7 @@ test('o elenco vem na ordem de cadastro', async () => {
 });
 
 test('jogador de outro organizador responde NOT_FOUND', async () => {
-  const other = await insertOrganizer(db, 'outro@exemplo.com');
+  const other = await insertOrganizerWithClub(db, 'outro@exemplo.com');
   const [player] = (await add('Pedrinho')).players;
   await assert.rejects(roster.updatePlayer(other.id, player.id, { rating: 1 }), expectCode('NOT_FOUND'));
   await assert.rejects(roster.removePlayer(other.id, player.id), expectCode('NOT_FOUND'));
@@ -122,7 +122,7 @@ test('updatePlayer alterna a presença de um jogador', async () => {
 });
 
 test('setAllPresent marca todos os jogadores do organizador e só os dele', async () => {
-  const other = await insertOrganizer(db, 'outro@exemplo.com');
+  const other = await insertOrganizerWithClub(db, 'outro@exemplo.com');
   await add('A');
   await add('B');
   await add('C', 3, other.id);
@@ -213,4 +213,57 @@ test('jogador cadastrado antes da feature 003 aparece sem posição', async () =
     [organizer.id],
   );
   assert.equal((await roster.getRosterState(organizer.id)).players[0].position, null);
+});
+
+// Feature 005 - elenco só com time
+
+// Conta sem time com um jogador gravado direto no banco, como as contas da feature 004.
+async function accountWithoutClub() {
+  const account = await insertOrganizer(db, 'semtime@exemplo.com');
+  const player = await db.one(
+    "INSERT INTO players (organizer_id, name, name_key, rating, position, present, created_at) VALUES ($1, 'Antigo', 'antigo', 4, 'DEF', false, now()) RETURNING id",
+    [account.id],
+  );
+  return { account, playerId: player.id };
+}
+
+const clubRequired = (error) =>
+  error.status === 409 && error.code === 'CLUB_REQUIRED' && error.message === 'Crie o seu time no MyTeam primeiro.';
+
+test('sem time, o elenco vem vazio mesmo com jogadores na conta (FR-018 da 005)', async () => {
+  const { account } = await accountWithoutClub();
+  assert.deepEqual(await roster.getRosterState(account.id), {
+    players: [],
+    summary: { presentCount: 0, possibleTeams: 0, averageRating: null },
+    drawStale: false,
+  });
+});
+
+test('sem time, cadastrar, alterar, remover e marcar presença são recusados e nada muda (FR-018 da 005)', async () => {
+  const { account, playerId } = await accountWithoutClub();
+  const calls = {
+    cadastrar: () => roster.addPlayer(account.id, { name: 'Novo', rating: 3, position: 'ATA' }),
+    nível: () => roster.updatePlayer(account.id, playerId, { rating: 1 }),
+    presença: () => roster.updatePlayer(account.id, playerId, { present: true }),
+    posição: () => roster.updatePlayer(account.id, playerId, { position: 'ATA' }),
+    remover: () => roster.removePlayer(account.id, playerId),
+    'todos presentes': () => roster.setAllPresent(account.id, { present: true }),
+  };
+  for (const [label, call] of Object.entries(calls)) await assert.rejects(call(), clubRequired, label);
+  assert.deepEqual(await db.query('SELECT name, rating, present, position FROM players WHERE organizer_id = $1', [account.id]), [
+    { name: 'Antigo', rating: 4, present: false, position: 'DEF' },
+  ]);
+});
+
+test('sem time, a validação da entrada vem antes da falta de time', async () => {
+  const { account } = await accountWithoutClub();
+  await assert.rejects(roster.addPlayer(account.id, { name: '', rating: 3, position: 'ATA' }), expectCode('VALIDATION_ERROR'));
+});
+
+test('ao criar o time, os jogadores da conta voltam com a presença que tinham (FR-019 da 005)', async () => {
+  const { account } = await accountWithoutClub();
+  await insertClub(db, account.id);
+  const state = await roster.getRosterState(account.id);
+  assert.deepEqual(withoutIds(state.players), [{ name: 'Antigo', rating: 4, present: false, position: 'DEF' }]);
+  assert.equal((await roster.setAllPresent(account.id, { present: true })).summary.presentCount, 1);
 });

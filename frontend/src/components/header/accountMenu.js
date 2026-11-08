@@ -12,8 +12,8 @@ export function createAccountMenu({ email, onLogout }) {
     'div',
     { id: 'account-menu', class: 'account-menu', hidden: true },
     h('p', { class: 'account-menu-email' }, email ?? ''),
-    h('a', { class: 'account-menu-item', href: '#/myfut', onClick: () => close() }, 'MyFUT'),
-    h('button', { type: 'button', class: 'account-menu-item', disabled: true }, 'Planos', h('span', { class: 'account-menu-soon' }, 'Em breve')),
+    h('a', { class: 'account-menu-item', href: '#/myteam', onClick: () => close() }, 'MyTeam'),
+    h('button', { type: 'button', class: 'account-menu-item', disabled: true }, 'Planos', h('span', { class: 'soon-tag' }, 'Em breve')),
     h(
       'button',
       {

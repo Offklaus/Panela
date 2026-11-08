@@ -19,3 +19,8 @@ export const RESET_MAX_PER_HOUR = 3;
 export const POSITIONS = Object.freeze(['ATA', 'DEF']);
 
 export const VESTS = Object.freeze(['green', 'white', 'orange', 'blue', 'pink', 'purple', 'yellow', 'cyan']);
+
+// Time do MyTeam (feature 005): um por conta, com nome e um ícone desta lista, na ordem da grade.
+export const CLUB_ICONS = Object.freeze(['ball', 'shield', 'bolt', 'star', 'crown', 'flame', 'trophy', 'target']);
+export const DEFAULT_CLUB_ICON = 'ball';
+export const CLUB_NAME_MAX_LENGTH = 40;

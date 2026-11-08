@@ -1,4 +1,4 @@
-/* Telas Elenco e MyFUT: canvas "Elenco · celular" e "MyFUT · celular" */
+/* Telas Elenco e MyTeam: canvas "Elenco · celular" e quadros "MyTeam · …" */
 .card {
   min-width: 0;
   border-radius: var(--radius-lg);
@@ -143,8 +143,8 @@
   padding: 0 10px;
 }
 
-/* MyFUT: duas linhas, nome, posição e remover em cima e estrelas embaixo (research §2 da 004) */
-.myfut-row {
+/* Elenco do time: duas linhas, nome, posição e remover em cima e estrelas embaixo (research §2 da 004) */
+.club-roster-row {
   display: flex;
   flex-direction: column;
   padding: 6px 4px 8px 16px;
@@ -171,7 +171,7 @@
   gap: 12px;
 }
 
-.myfut-row .star-rating {
+.club-roster-row .star-rating {
   margin-left: -10px;
 }
 
@@ -333,6 +333,191 @@
 
 .roster-empty p {
   margin: 0 0 12px;
+}
+
+/* Elenco sem time: canvas "Elenco · sem time" (FR-017 da 005) */
+.roster-no-club {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.roster-no-club p {
+  margin: 0;
+  max-width: 280px;
+  font-size: 15px;
+}
+
+.roster-no-club .roster-no-club-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.roster-no-club .btn {
+  margin-top: 4px;
+}
+
+/* MyTeam: canvas "MyTeam · criar time" e "MyTeam · com time" (research §7 da 005) */
+.myteam-header {
+  gap: 6px;
+}
+
+.club-intro {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.club-form {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-surface-muted);
+}
+
+.club-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.club-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.club-icon-option {
+  height: 64px;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.club-icon-option[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-accent);
+}
+
+.club-submit {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+}
+
+.club-badge {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--color-ink);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.club-badge-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.club-card,
+.club-card:hover {
+  color: var(--color-ink);
+}
+
+.club-card {
+  min-height: 88px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.club-card:hover {
+  background: var(--color-surface-muted);
+}
+
+.club-card-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.club-card-name {
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-card-count {
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.club-card-chevron {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--color-text-muted);
+}
+
+/* Elenco do time: ícone e nome no título, "Convocar jogador" em breve (canvas "MyTeam · elenco do time") */
+.club-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Só o nome ganha reticências; o "· N" fica sempre à vista */
+.club-title-row .section-title {
+  min-width: 0;
+  display: flex;
+  gap: 0.25em;
+  white-space: nowrap;
+}
+
+.club-title-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-title-row .roster-count {
+  flex-shrink: 0;
+}
+
+.soon-button {
+  justify-content: space-between;
+}
+
+.soon-button:disabled {
+  cursor: default;
+  opacity: 1;
+  color: var(--color-text-muted);
+}
+
+.soon-button .soon-tag {
+  background: var(--color-surface);
 }
 
 /* Em menos de 400 px, a lista ocupa a largura toda para as 5 estrelas e a presença caberem (research §10) */

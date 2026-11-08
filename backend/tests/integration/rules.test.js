@@ -1,6 +1,7 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  CLUB_ICONS,
   DEFAULT_RATING,
   MIN_TEAMS,
   PASSWORD_MIN_LENGTH,
@@ -27,6 +28,7 @@ test('GET /api/rules responde sem sessão, com cada valor de domain.js no campo 
       defaultRating: DEFAULT_RATING,
       passwordMinLength: PASSWORD_MIN_LENGTH,
       minTeams: MIN_TEAMS,
+      clubIcons: [...CLUB_ICONS],
     },
   });
 });

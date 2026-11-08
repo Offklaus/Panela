@@ -3,6 +3,7 @@ import * as drawModel from '../models/drawModel.js';
 import * as organizerModel from '../models/organizerModel.js';
 import * as playerModel from '../models/playerModel.js';
 import { AppError } from '../utils/AppError.js';
+import { hasClub, requireClub } from './clubService.js';
 import { balanceTeams } from './teamBalancer.js';
 
 const sumRatings = (players) => players.reduce((sum, player) => sum + player.rating, 0);
@@ -26,7 +27,9 @@ const positionsMissing = (count) =>
 
 export function createDrawService({ db, rng, now }) {
   // Monta o Draw de contracts/api.md com os dados atuais do elenco; quem foi removido some (FR-032).
+  // Sem time não há sorteio, nem um antigo guardado (FR-018 da 005).
   async function getDraw(organizerId) {
+    if (!(await hasClub(db, organizerId))) return null;
     const saved = await drawModel.findByOrganizer(db, organizerId);
     if (!saved) return null;
 
@@ -72,6 +75,7 @@ export function createDrawService({ db, rng, now }) {
     async createDraw(organizerId) {
       await db.transaction(async (tx) => {
         await organizerModel.lock(tx, organizerId);
+        await requireClub(tx, organizerId);
         const present = await playerModel.listPresentByOrganizer(tx, organizerId);
         // Com gente para 2 times, todo presente precisa de posição; sem isso, nada é gravado (FR-007 da 003).
         if (present.length >= MIN_TEAMS * TEAM_SIZE) {

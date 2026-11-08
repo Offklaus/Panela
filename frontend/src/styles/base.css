@@ -264,7 +264,8 @@ a.btn-primary:hover {
   opacity: 1;
 }
 
-.account-menu-soon {
+/* Etiqueta "Em breve" de "Planos" e "Convocar jogador" (FR-003 da 004, FR-010 da 005) */
+.soon-tag {
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--color-line);

@@ -10,6 +10,7 @@ import {
   validatePlayerUpdate,
   validatePresent,
 } from '../validators/playerValidator.js';
+import { hasClub, requireClub } from './clubService.js';
 
 const notFound = () => new AppError(404, 'NOT_FOUND', 'Jogador não encontrado.');
 const nameTaken = () =>
@@ -17,8 +18,11 @@ const nameTaken = () =>
 const rosterFull = () => new AppError(409, 'ROSTER_FULL', `O elenco já tem ${MAX_PLAYERS} jogadores.`);
 
 export function createRosterService({ db, now }) {
+  // Sem time, o elenco vem vazio e sem sorteio; os jogadores da conta voltam, com a presença, quando o
+  // time é criado (FR-018 e FR-019 da 005).
   async function getRosterState(organizerId) {
-    const players = await playerModel.listByOrganizer(db, organizerId);
+    const club = await hasClub(db, organizerId);
+    const players = club ? await playerModel.listByOrganizer(db, organizerId) : [];
     const present = players.filter((player) => player.present);
     const totalRating = present.reduce((sum, player) => sum + player.rating, 0);
 
@@ -29,15 +33,17 @@ export function createRosterService({ db, now }) {
         possibleTeams: Math.floor(present.length / TEAM_SIZE),
         averageRating: present.length > 0 ? totalRating / present.length : null,
       },
-      drawStale: await drawModel.isStale(db, organizerId),
+      drawStale: club && (await drawModel.isStale(db, organizerId)),
     };
   }
 
   // Toda alteração roda numa transação com o organizador travado (limite de jogadores e nome repetido
-  // valem mesmo com pedidos simultâneos), marca o sorteio como desatualizado (FR-031) e devolve o elenco.
+  // valem mesmo com pedidos simultâneos), exige o time (FR-018 da 005), marca o sorteio como
+  // desatualizado (FR-031) e devolve o elenco.
   async function mutate(organizerId, change) {
     await db.transaction(async (tx) => {
       await organizerModel.lock(tx, organizerId);
+      await requireClub(tx, organizerId);
       await change(tx);
       await drawModel.setStale(tx, organizerId);
     });

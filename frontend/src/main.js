@@ -9,7 +9,8 @@ import { forgotPasswordView } from './components/auth/forgotPasswordView.js';
 import { loginView } from './components/auth/loginView.js';
 import { resetPasswordView } from './components/auth/resetPasswordView.js';
 import { signupView } from './components/auth/signupView.js';
-import { myfutView } from './myfutView.js';
+import { clubRosterView } from './clubRosterView.js';
+import { myteamView } from './myteamView.js';
 import { rosterView } from './rosterView.js';
 import { createRouter } from './router.js';
 import * as authApi from './services/authApi.js';
@@ -20,7 +21,16 @@ import { h } from './utils/dom.js';
 import { mountNotice, showNotice } from './utils/notice.js';
 
 const AUTH_ROUTES = new Set(['/entrar', '/criar-conta', '/esqueci-senha', '/nova-senha']);
-const store = createStore({ organizer: null, roster: null, draw: null, rules: null, shortfall: null, pendingPositions: null });
+// club: undefined = ainda não lido; null = a conta não tem time (research §6 da 005).
+const store = createStore({
+  organizer: null,
+  roster: null,
+  draw: null,
+  rules: null,
+  shortfall: null,
+  pendingPositions: null,
+  club: undefined,
+});
 
 // Sem as regras não dá para montar a tela, e o frontend não guarda cópia delas.
 function showLoadError(message) {
@@ -62,7 +72,8 @@ async function boot() {
       '/nova-senha': withStore(resetPasswordView),
       '/': withStore(rosterView),
       '/times': withStore(teamsView),
-      '/myfut': withStore(myfutView),
+      '/myteam': withStore(myteamView),
+      '/myteam/elenco': withStore(clubRosterView),
     },
     beforeEach(path) {
       const signedIn = Boolean(store.getState().organizer);

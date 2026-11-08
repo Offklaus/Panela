@@ -22,11 +22,11 @@ function positionButton(player, onPosition) {
   );
 }
 
-// MyFUT: nome, posição e remover em cima; estrelas embaixo (research §2 da 004).
-export function myfutRow({ player, levels, onRating, onRemove, onPosition }) {
+// Elenco do time: nome, posição e remover em cima; estrelas embaixo (research §2 da 004).
+export function clubRosterRow({ player, levels, onRating, onRemove, onPosition }) {
   return h(
     'li',
-    { class: 'myfut-row' },
+    { class: 'club-roster-row' },
     h(
       'div',
       { class: 'roster-line' },

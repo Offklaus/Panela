@@ -23,6 +23,11 @@ export function missingPlayersText(count, minTeams) {
     : `Faltam ${count} jogadores para fechar ${minTeams} times.`;
 }
 
+export function playerCountText(count) {
+  if (count === 0) return 'Nenhum jogador';
+  return count === 1 ? '1 jogador' : `${count} jogadores`;
+}
+
 export function presentCountText(count) {
   return count === 1 ? '1 presente' : `${count} presentes`;
 }

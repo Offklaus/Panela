@@ -6,6 +6,7 @@ import {
   missingPlayersText,
   passwordHintText,
   pendingPositionsText,
+  playerCountText,
   positionCountText,
   positionShortageText,
   presentCountText,
@@ -66,4 +67,10 @@ test('positionShortageText diz quantos jogadores da posição há para os times'
   assert.equal(positionShortageText({ position: 'DEF', count: 0, teams: 2 }), 'Nenhum defensor para 2 times.');
   assert.equal(positionShortageText({ position: 'DEF', count: 1, teams: 2 }), 'Só 1 defensor para 2 times.');
   assert.equal(positionShortageText({ position: 'ATA', count: 2, teams: 3 }), 'Só 2 atacantes para 3 times.');
+});
+
+test('playerCountText diz quantos jogadores o time tem', () => {
+  assert.equal(playerCountText(0), 'Nenhum jogador');
+  assert.equal(playerCountText(1), '1 jogador');
+  assert.equal(playerCountText(12), '12 jogadores');
 });

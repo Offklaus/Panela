@@ -15,6 +15,8 @@ async function organizerWithPlayers(count) {
   const client = server.createClient();
   counter += 1;
   await client.post('/api/auth/signup', { body: { email: `sorteio${counter}@exemplo.com`, password: 'senha-boa-123' } });
+  // O sorteio é do time: sem ele, a rota recusa sortear (FR-018 da 005).
+  assert.equal((await client.post('/api/club', { body: { name: 'Os Boleiros' } })).status, 201);
   for (let i = 1; i <= count; i++) {
     const res = await client.post('/api/players', { body: { name: `Jogador ${i}`, rating: (i % 5) + 1, position: i % 2 === 0 ? 'ATA' : 'DEF' } });
     assert.equal(res.status, 201);

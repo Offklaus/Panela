@@ -1,4 +1,4 @@
-// Rotas por hash: #/entrar, #/criar-conta, #/esqueci-senha, #/nova-senha?token=..., #/ (elenco), #/times, #/myfut
+// Rotas por hash: #/entrar, #/criar-conta, #/esqueci-senha, #/nova-senha?token=..., #/ (elenco), #/times, #/myteam, #/myteam/elenco
 
 let previousPath = null;
 let currentPath = null;

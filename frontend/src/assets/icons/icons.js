@@ -45,6 +45,7 @@ export const closeIcon = ({ size = 18 } = {}) => strokeIcon(size, 'M6 6l12 12M18
 export const plusIcon = ({ size = 18 } = {}) => strokeIcon(size, 'M12 5v14M5 12h14', 2.4);
 export const swapIcon = ({ size = 22 } = {}) => strokeIcon(size, 'M4 7h11l-3-3M20 17H9l3 3', 2.4);
 export const arrowLeftIcon = ({ size = 22 } = {}) => strokeIcon(size, 'M15 5l-7 7 7 7', 2.4);
+export const chevronRightIcon = ({ size = 22 } = {}) => strokeIcon(size, 'M9 5l7 7-7 7', 2.4);
 
 export function userIcon({ size = 22 } = {}) {
   return icon(
