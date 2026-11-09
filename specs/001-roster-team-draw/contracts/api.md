@@ -50,9 +50,13 @@
 
 ```text
 Rules       { ratingMin: number, ratingMax: number, defaultRating: number,
-              passwordMinLength: number, minTeams: number, clubIcons: ClubIcon[] }
+              passwordMinLength: number, minTeams: number, clubIcons: ClubIcon[],
+              dominantFeet: DominantFoot[] }
 ClubIcon    "ball" | "shield" | "bolt" | "star" | "crown" | "flame" | "trophy" | "target"
 Club        { name: string, icon: ClubIcon }
+DominantFoot "right" | "left" | "both"
+Profile     { nickname: string, birthDate: string ("YYYY-MM-DD"), age: number,
+              position: "ATA" | "DEF", foot: DominantFoot }
 Organizer   { id: number, email: string }
 Player      { id: number, name: string, rating: 1..5, present: boolean, position: "ATA" | "DEF" | null }
 Summary     { presentCount: number, possibleTeams: number, averageRating: number | null }
@@ -92,7 +96,8 @@ abrir e não guarda cópia deles no código (constituição, Princípio II).
     "defaultRating": 3,
     "passwordMinLength": 8,
     "minTeams": 2,
-    "clubIcons": ["ball", "shield", "bolt", "star", "crown", "flame", "trophy", "target"]
+    "clubIcons": ["ball", "shield", "bolt", "star", "crown", "flame", "trophy", "target"],
+    "dominantFeet": ["right", "left", "both"]
   }
 }
 ```
@@ -131,6 +136,18 @@ mudam o elenco ou sorteiam respondem `CLUB_REQUIRED`. Detalhes em
 |---------------|-------|---------|-------|
 | `GET /api/club` | — | `200 { club: Club \| null }` | — |
 | `POST /api/club` | `{ name, icon? }` | `201 { club: Club }` | `VALIDATION_ERROR`, `CLUB_EXISTS` |
+
+## Perfil 🔒
+
+O Craque, perfil de jogador da conta (feature 006): um por conta. `age` é calculada pelo backend
+com a data de hoje em `America/Sao_Paulo`. Os erros de validação vêm um por vez, com `field`
+(`nickname`, `birthDate`, `position` ou `foot`). Detalhes em
+[006/contracts/api.md](../../006-craque-profile/contracts/api.md).
+
+| Método e rota | Corpo | Sucesso | Erros |
+|---------------|-------|---------|-------|
+| `GET /api/profile` | — | `200 { profile: Profile \| null }` | — |
+| `PUT /api/profile` | `{ nickname, birthDate, position, foot }` | `200 { profile: Profile }`; cria ou substitui | `VALIDATION_ERROR` |
 
 ## Elenco e presença 🔒
 

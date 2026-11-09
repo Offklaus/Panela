@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ageText,
+  footText,
   formatDecimal,
   initials,
   missingPlayersText,
@@ -12,6 +14,19 @@ import {
   presentCountText,
   starsText,
 } from '../src/utils/format.js';
+
+test('ageText escreve a idade em anos', () => {
+  assert.equal(ageText(28), '28 anos');
+  assert.equal(ageText(1), '1 ano');
+  assert.equal(ageText(100), '100 anos');
+});
+
+test('footText dá o nome em pt-BR de cada perna e devolve o id quando não conhece', () => {
+  assert.equal(footText('right'), 'Direita');
+  assert.equal(footText('left'), 'Esquerda');
+  assert.equal(footText('both'), 'Ambas');
+  assert.equal(footText('outra'), 'outra');
+});
 
 test('formatDecimal usa uma casa e vírgula', () => {
   assert.equal(formatDecimal(3.4), '3,4');

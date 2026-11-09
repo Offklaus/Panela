@@ -4,12 +4,14 @@ import './styles/base.css';
 import './styles/auth.css';
 import './styles/roster.css';
 import './styles/teams.css';
+import './styles/craque.css';
 import { authLayout } from './components/auth/authLayout.js';
 import { forgotPasswordView } from './components/auth/forgotPasswordView.js';
 import { loginView } from './components/auth/loginView.js';
 import { resetPasswordView } from './components/auth/resetPasswordView.js';
 import { signupView } from './components/auth/signupView.js';
 import { clubRosterView } from './clubRosterView.js';
+import { craqueView } from './craqueView.js';
 import { myteamView } from './myteamView.js';
 import { rosterView } from './rosterView.js';
 import { createRouter } from './router.js';
@@ -21,7 +23,8 @@ import { h } from './utils/dom.js';
 import { mountNotice, showNotice } from './utils/notice.js';
 
 const AUTH_ROUTES = new Set(['/entrar', '/criar-conta', '/esqueci-senha', '/nova-senha']);
-// club: undefined = ainda não lido; null = a conta não tem time (research §6 da 005).
+// club e profile: undefined = ainda não lido; null = a conta não tem time ou perfil (research §6 da
+// 005 e da 006).
 const store = createStore({
   organizer: null,
   roster: null,
@@ -30,6 +33,7 @@ const store = createStore({
   shortfall: null,
   pendingPositions: null,
   club: undefined,
+  profile: undefined,
 });
 
 // Sem as regras não dá para montar a tela, e o frontend não guarda cópia delas.
@@ -74,6 +78,7 @@ async function boot() {
       '/times': withStore(teamsView),
       '/myteam': withStore(myteamView),
       '/myteam/elenco': withStore(clubRosterView),
+      '/craque': withStore(craqueView),
     },
     beforeEach(path) {
       const signedIn = Boolean(store.getState().organizer);

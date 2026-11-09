@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   CLUB_ICONS,
   DEFAULT_RATING,
+  DOMINANT_FEET,
   MIN_TEAMS,
   PASSWORD_MIN_LENGTH,
   RATING_MAX,
@@ -29,6 +30,7 @@ test('GET /api/rules responde sem sessão, com cada valor de domain.js no campo 
       passwordMinLength: PASSWORD_MIN_LENGTH,
       minTeams: MIN_TEAMS,
       clubIcons: [...CLUB_ICONS],
+      dominantFeet: [...DOMINANT_FEET],
     },
   });
 });

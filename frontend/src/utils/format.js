@@ -28,6 +28,17 @@ export function playerCountText(count) {
   return count === 1 ? '1 jogador' : `${count} jogadores`;
 }
 
+export function ageText(age) {
+  return age === 1 ? '1 ano' : `${age} anos`;
+}
+
+// Nomes das pernas que vêm em `rules.dominantFeet` (feature 006).
+const FOOT_WORDS = { right: 'Direita', left: 'Esquerda', both: 'Ambas' };
+
+export function footText(foot) {
+  return FOOT_WORDS[foot] ?? foot;
+}
+
 export function presentCountText(count) {
   return count === 1 ? '1 presente' : `${count} presentes`;
 }

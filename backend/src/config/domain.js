@@ -24,3 +24,11 @@ export const VESTS = Object.freeze(['green', 'white', 'orange', 'blue', 'pink', 
 export const CLUB_ICONS = Object.freeze(['ball', 'shield', 'bolt', 'star', 'crown', 'flame', 'trophy', 'target']);
 export const DEFAULT_CLUB_ICON = 'ball';
 export const CLUB_NAME_MAX_LENGTH = 40;
+
+// Craque, o perfil de jogador da conta (feature 006). A idade sai da data de nascimento e da data de
+// hoje neste fuso; os limites só barram datas digitadas errado.
+export const DOMINANT_FEET = Object.freeze(['right', 'left', 'both']);
+export const NICKNAME_MAX_LENGTH = 40;
+export const PROFILE_MIN_AGE = 5;
+export const PROFILE_MAX_AGE = 100;
+export const APP_TIME_ZONE = 'America/Sao_Paulo';

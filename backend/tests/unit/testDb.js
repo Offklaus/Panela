@@ -4,7 +4,7 @@ import { migrate } from '../../src/database/migrate.js';
 import * as clubModel from '../../src/models/clubModel.js';
 import * as organizerModel from '../../src/models/organizerModel.js';
 
-const TABLES = 'organizers, sessions, password_resets, login_throttle, players, draws, clubs';
+const TABLES = 'organizers, sessions, password_resets, login_throttle, players, draws, clubs, profiles';
 
 async function createDatabaseForThisProcess() {
   const adminUrl = process.env.TEST_DATABASE_URL;

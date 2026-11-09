@@ -13,6 +13,7 @@ export function createAccountMenu({ email, onLogout }) {
     { id: 'account-menu', class: 'account-menu', hidden: true },
     h('p', { class: 'account-menu-email' }, email ?? ''),
     h('a', { class: 'account-menu-item', href: '#/myteam', onClick: () => close() }, 'MyTeam'),
+    h('a', { class: 'account-menu-item', href: '#/craque', onClick: () => close() }, 'Craque'),
     h('button', { type: 'button', class: 'account-menu-item', disabled: true }, 'Planos', h('span', { class: 'soon-tag' }, 'Em breve')),
     h(
       'button',

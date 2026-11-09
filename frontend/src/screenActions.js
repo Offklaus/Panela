@@ -6,7 +6,15 @@ import { hasTeams } from './utils/screens.js';
 // O que as telas Elenco e Times fazem igual: sessão vencida, sair e sortear.
 export function createScreenActions({ store, navigate }) {
   function signOut() {
-    store.setState({ organizer: null, roster: null, draw: null, shortfall: null, pendingPositions: null, club: undefined });
+    store.setState({
+      organizer: null,
+      roster: null,
+      draw: null,
+      shortfall: null,
+      pendingPositions: null,
+      club: undefined,
+      profile: undefined,
+    });
     navigate('/entrar');
   }
 
